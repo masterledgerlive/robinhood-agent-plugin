@@ -1,0 +1,33 @@
+{
+  "name": "robinhood-agent-plugin",
+  "displayName": "Robinhood Agentic Trading",
+  "version": "1.0.0",
+  "description": "Connect Cursor agents to Robinhood Agentic Trading MCP with risk rails, paper vs live, and plain-text MACHINE LOG.",
+  "author": {
+    "name": "masterledgerlive"
+  },
+  "homepage": "https://github.com/masterledgerlive/robinhood-agent-plugin",
+  "repository": "https://github.com/masterledgerlive/robinhood-agent-plugin",
+  "license": "MIT",
+  "logo": "assets/logo.svg",
+  "keywords": [
+    "robinhood",
+    "mcp",
+    "trading",
+    "crypto",
+    "prediction-markets",
+    "risk"
+  ],
+  "category": "integrations",
+  "tags": [
+    "robinhood",
+    "mcp",
+    "trading",
+    "agent"
+  ],
+  "skills": "./skills/",
+  "rules": "./rules/",
+  "agents": "./agents/",
+  "commands": "./commands/",
+  "mcpServers": "./mcp.json"
+}

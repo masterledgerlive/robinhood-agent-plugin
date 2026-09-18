@@ -1,0 +1,59 @@
+{
+  "name": "@masterledgerlive/robinhood-agent-plugin",
+  "version": "1.0.0",
+  "description": "MIT Cursor/agent plugin for Robinhood Agentic Trading MCP: capability discovery, risk rails, paper vs live, plain-text MACHINE LOG.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "skills",
+    "docs",
+    "mcp.json",
+    "plugin.json",
+    "LICENSE",
+    "README.md",
+    "SKILL.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/masterledgerlive/robinhood-agent-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/masterledgerlive/robinhood-agent-plugin/issues"
+  },
+  "homepage": "https://github.com/masterledgerlive/robinhood-agent-plugin#readme",
+  "keywords": [
+    "robinhood",
+    "mcp",
+    "cursor",
+    "agent",
+    "trading",
+    "prediction-markets",
+    "crypto"
+  ],
+  "author": {
+    "name": "masterledgerlive"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

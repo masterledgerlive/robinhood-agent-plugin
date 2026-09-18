@@ -1,0 +1,22 @@
+---
+description: Robinhood Agentic RISK rails — always on while this plugin is installed
+alwaysApply: true
+---
+
+Trade only the dedicated Agentic account (`agentic_allowed=true`).
+
+RISK bucket only. Never SAVE. Never vault.
+
+Discover MCP tools with tools/list every session. Snapshot names are not the catalog.
+
+Review or preview before place unless the user clearly waived it.
+
+Paper mode must not call place tools. Log WOULD_PLACE instead.
+
+Never invent PnL. Print broker order ids or say none.
+
+Halt at 20% daily drawdown from the broker start-of-day RISK mark.
+
+Write a plain-text MACHINE LOG for every money-related tool call:
+
+INTENT → TOOL → ARGS (redacted) → RESULT → HUMAN LINE
