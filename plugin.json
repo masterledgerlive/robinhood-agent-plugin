@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "robinhood-agent-plugin",
+  "version": "1.0.0",
+  "description": "Robinhood Agentic Trading MCP helpers: discover tools at runtime, review before place, risk rails, MACHINE LOG.",
+  "author": {
+    "name": "masterledgerlive",
+    "url": "https://github.com/masterledgerlive"
+  },
+  "homepage": "https://github.com/masterledgerlive/robinhood-agent-plugin",
+  "repository": "https://github.com/masterledgerlive/robinhood-agent-plugin",
+  "license": "MIT",
+  "keywords": [
+    "robinhood",
+    "mcp",
+    "trading",
+    "cursor",
+    "agent"
+  ]
+}
