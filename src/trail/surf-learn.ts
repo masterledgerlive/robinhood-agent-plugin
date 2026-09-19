@@ -28,7 +28,7 @@ function surfPathId(trickId: string, symbol: string): string {
   return `surf:${trickId}:${baseSymbol(symbol)}`;
 }
 
-function candidateQuotes(snapshot: PortfolioSnapshot): Quote[] {
+export function surfUniverseQuotes(snapshot: PortfolioSnapshot): Quote[] {
   const wanted = new Set<string>();
   for (const sleeve of snapshot.sleeves) {
     if (sleeve.role === "working" && sleeve.notionalUsd > 0) wanted.add(baseSymbol(sleeve.symbol));
@@ -75,7 +75,7 @@ export function runSurfLearn(
   const scored: Omit<WhatIfPath, "rank">[] = [];
 
   for (const trickId of SURF_LEARN.tricks) {
-    for (const quote of candidateQuotes(snapshot)) {
+    for (const quote of surfUniverseQuotes(snapshot)) {
       if (!applies(trickId, quote, snapshot)) continue;
       const pnl = whatIfPnlUsd(quote, notionalUsd);
       if (pnl === null) continue;

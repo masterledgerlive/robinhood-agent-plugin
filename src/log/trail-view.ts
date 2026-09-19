@@ -92,6 +92,31 @@ export function formatTrailView(input: {
           return `  ${row.rank}  ${pad(row.path_id, 36)} paper ${pnl}  live=${row.liveClears ? "yes" : "no"}  ${row.trick_id} ${row.symbol}`;
         });
 
+  const red = input.watch?.redDay;
+  const redDayLines = !red
+    ? ["  quiet"]
+    : [
+        `  status ${red.status}  legs whisper=${red.legs.whisper} book=${red.legs.book} tape=${red.legs.tape}`,
+        ...red.reasons.map((r) => `  ${singleLine(r)}`),
+        red.recommendations.exitWorkingToDust.length === 0
+          ? "  exit_working_to_dust  none (never flatten banks)"
+          : `  exit_working_to_dust  ${red.recommendations.exitWorkingToDust
+              .map((s) => `${s.symbol} leave $${s.leaveDustUsd.toFixed(2)}`)
+              .join(", ")}`,
+        red.recommendations.buyTrough.length === 0
+          ? "  buy_trough  none"
+          : `  buy_trough  ${red.recommendations.buyTrough
+              .map((b) => `${b.symbol}[${b.status}]`)
+              .join(", ")}`,
+      ];
+
+  const whisperLines =
+    !red || red.whispers.length === 0
+      ? ["  none"]
+      : red.whispers.map((w) => {
+          return `  ${pad(w.whisper_id, 22)} ${pad(w.source, 18)} ${pad(w.theme, 16)} ${pad(w.status, 11)} ${w.route_hint} ${w.tokens.join(",")}`;
+        });
+
   return [
     "=== TRAIL VIEW ===",
     `TIME    ${at}`,
@@ -99,13 +124,17 @@ export function formatTrailView(input: {
     `MODE    ${mode} + ${SURF_LEARN.id}`,
     `BUCKET  ${RISK_BUCKET}`,
     `WATCH   ${watch}`,
-    `HALT    soft=${input.watch?.halt.soft ?? false} expectancy=${input.watch?.halt.expectancy ?? false}`,
+    `HALT    soft=${input.watch?.halt.soft ?? false} expectancy=${input.watch?.halt.expectancy ?? false} red_day=${input.watch?.halt.redDay ?? false}`,
     `LEARN   ${SURF_LEARN.id} $${SURF_LEARN.notionalUsd} every cycle (paper; no place)`,
     `BP      ${bpLine}`,
     "CANDIDATES",
     ...candidateLines,
     "WHAT-IF TOP",
     ...whatIfLines,
+    "RED_DAY",
+    ...redDayLines,
+    "WHISPERS",
+    ...whisperLines,
     "PATHS",
     ...pathLines,
     "TRICK RANKS",
@@ -135,21 +164,26 @@ export function watchToMachineLog(
       candidate_count: n,
       whatif_top: watch.learn.whatIfTop.length,
       surf_learn: true,
+      red_day: watch.redDay.status,
     },
     result: {
       ok: true,
       summary:
-        watch.status === "quiet"
-          ? `quiet | 0 live candidates; SURF_LEARN top ${watch.learn.whatIfTop.length}`
-          : `alert | ${n} ${names}`,
+        watch.redDay.status === "fired"
+          ? `alert | RED_DAY fired; ${watch.redDay.recommendations.exitWorkingToDust.length} exit seats (no place)`
+          : watch.status === "quiet"
+            ? `quiet | 0 live candidates; SURF_LEARN top ${watch.learn.whatIfTop.length}`
+            : `alert | ${n} ${names || watch.redDay.status}`,
       orderId: null,
       fillId: null,
       realizedPnl: null,
     },
     human:
-      watch.status === "quiet"
-        ? "Quiet live book. SURF_LEARN what-if ranks updated. No place."
-        : "Alert. Agent/human may step in on gate-clear tricks. No order placed by watcher.",
+      watch.redDay.status === "fired"
+        ? "RED_DAY fired. Recommend exit working to dust + staged buy_trough. Watcher did not place."
+        : watch.status === "quiet"
+          ? "Quiet live book. SURF_LEARN what-if ranks updated. No place."
+          : "Alert. Agent/human may step in on gate-clear tricks. No order placed by watcher.",
   };
   return entry;
 }

@@ -6,6 +6,7 @@ export {
   LOW_CAP_SLOW,
   DIVIDEND_15M,
   SURF_LEARN,
+  RED_DAY,
   DEFAULT_GATE_MODE,
   TRAIL_HORIZON_DEFAULT,
   FOLLOW_PATH_SOURCES,
@@ -32,6 +33,8 @@ export type {
   WatchResult,
   WhatIfPath,
   SurfLearnResult,
+  WhisperCard,
+  RedDayResult,
 } from "./types.js";
 export {
   baseSymbol,
@@ -58,7 +61,9 @@ export {
 } from "./gates.js";
 export { SuccessLedger, LedgerError } from "./ledger.js";
 export { watch15m } from "./watcher.js";
-export { runSurfLearn, whatIfPnlUsd } from "./surf-learn.js";
+export { runSurfLearn, whatIfPnlUsd, surfUniverseQuotes } from "./surf-learn.js";
+export { redDayTrigger, evaluateRedDay } from "./red-day.js";
+export { assertWhisper, loadWhispers, loadWhisperFile, whisperCardSchema, WhisperError } from "./whisper.js";
 export { FixtureBroker } from "./broker.js";
 export type { TrailBrokerPort } from "./broker.js";
 export { assertSnapshot, SnapshotError } from "./snapshot.js";

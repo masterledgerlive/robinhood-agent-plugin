@@ -26,6 +26,7 @@ describe("15m watcher", () => {
     assert.equal(watch.learn.ran, true);
     assert.ok(watch.learn.whatIfTop.length >= 1);
     assert.equal(watch.learn.notionalUsd, 2);
+    assert.equal(watch.redDay.status, "quiet");
   });
 
   it("alerts when trough_bounce_15m clears and attaches a follow-path id", () => {

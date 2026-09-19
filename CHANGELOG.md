@@ -8,6 +8,7 @@
 - Fixture/stub broker only. No order placement from the watcher, tests, or CI.
 - IKN CORE ethics bridge (usable now). Full IKN protocol / Solid / Merkle / cosmos phases stay WIP.
 - DIVIDEND_15M default live rails + SURF_LEARN paper what-ifs every 15m (`WHAT-IF TOP`). No watcher place.
+- Red-day + Agentic whisper layer (2-of-3). Wild West quarantine. Fired recommends exit-to-dust + buy_trough only.
 
 ## 1.0.0
 

@@ -21,6 +21,8 @@ export type Quote = {
    * Omit if unknown — that surfer is skipped. Never a broker fill.
    */
   mark15m?: number;
+  /** Session open mark. Omit if unknown — red-day book leg will not invent it. */
+  sessionOpen?: number;
 };
 
 export type Sleeve = {
@@ -52,6 +54,56 @@ export type GameAuthorize = {
   /** Haircut dollars Game named. Omit if they only authorized "sleeve above floor". */
   sleeveUsd?: number;
   tokens?: string[];
+  /** Game ping that a red-day / risk-off is on. Counts as whisper-leg A alone. */
+  redDay?: boolean;
+};
+
+export type WhisperTheme = "red_day" | "massive_up" | "token_specific";
+export type WhisperRouteHint = "exit_working" | "hold_banks" | "buy_trough";
+/** IKN Wild West: unverified chatter starts in quarantine. */
+export type WhisperStatus = "quarantine" | "confirmed" | "expired";
+
+export type WhisperCard = {
+  whisper_id: string;
+  heard_at: string;
+  source: string;
+  theme: WhisperTheme;
+  tokens: string[];
+  route_hint: WhisperRouteHint;
+  confidence: number;
+  status: WhisperStatus;
+  example?: boolean;
+};
+
+export type RedDayLeg = {
+  whisper: boolean;
+  book: boolean;
+  tape: boolean;
+};
+
+export type RedDayExitSeat = {
+  symbol: string;
+  notionalUsd: number;
+  leaveDustUsd: number;
+};
+
+export type RedDayBuyTrough = {
+  symbol: string;
+  whisper_id: string;
+  status: WhisperStatus;
+  reason: string;
+};
+
+export type RedDayResult = {
+  status: "quiet" | "armed" | "fired";
+  reasons: string[];
+  legs: RedDayLeg;
+  active: boolean;
+  recommendations: {
+    exitWorkingToDust: RedDayExitSeat[];
+    buyTrough: RedDayBuyTrough[];
+  };
+  whispers: WhisperCard[];
 };
 
 export type DayState = {
@@ -80,6 +132,8 @@ export type PortfolioSnapshot = {
   troughs: TroughWindow[];
   day: DayState;
   authorize?: GameAuthorize;
+  /** Optional inbox on the snapshot. Unverified cards default to quarantine. */
+  whispers?: WhisperCard[];
 };
 
 export type TrickEvaluation = {
@@ -156,10 +210,11 @@ export type SurfLearnResult = {
 export type WatchResult = {
   status: "quiet" | "alert";
   asOf: string;
-  halt: { soft: boolean; expectancy: boolean };
+  halt: { soft: boolean; expectancy: boolean; redDay: boolean };
   candidates: WatchCandidate[];
   rejectedCount: number;
   learn: SurfLearnResult;
+  redDay: RedDayResult;
 };
 
 export type TrickRank = {

@@ -112,6 +112,7 @@ Small-capital research that locked LOW_CAP_SLOW: frequency is the killer on ~$20
 | Trail plain-text view | `src/log/trail-view.ts` (extends MACHINE VIEW) |
 | EXAMPLE fixtures | `tests/fixtures/trail/*.example.json` |
 | DIVIDEND_15M + SURF_LEARN | [DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md), `src/trail/surf-learn.ts` |
+| Red-day + whispers | [RED_DAY_WHISPER.md](RED_DAY_WHISPER.md), `src/trail/red-day.ts` |
 | IKN CORE ethics (usable now; protocol WIP) | [IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md) |
 
 ```bash
