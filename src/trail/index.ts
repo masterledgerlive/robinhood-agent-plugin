@@ -37,6 +37,10 @@ export type {
   NextMove,
   WhisperCard,
   RedDayResult,
+  TokenTrigger,
+  TokenTriggerPlan,
+  TriggerAction,
+  TriggerBrokerAlertSpec,
 } from "./types.js";
 export {
   baseSymbol,
@@ -67,6 +71,20 @@ export { runSurfLearn, whatIfPnlUsd, surfUniverseQuotes } from "./surf-learn.js"
 export { recommendNextMove } from "./surf-act.js";
 export { redDayTrigger, evaluateRedDay } from "./red-day.js";
 export { assertWhisper, loadWhispers, loadWhisperFile, whisperCardSchema, WhisperError } from "./whisper.js";
+export {
+  AGENTIC_MOVE_EQ,
+  takeProfitPct,
+  stopPct,
+  takeProfitMark,
+  stopMark,
+  edgeClearsLive,
+  edgeClearsPark,
+  whisperCascadeScore,
+  formatSleeveExitEquation,
+} from "./equation.js";
+export { waveOf, rankWaves, waveToTrickId } from "./wave.js";
+export type { WaveKind, WaveState } from "./wave.js";
+export { armTokenTriggers } from "./triggers.js";
 export { FixtureBroker } from "./broker.js";
 export type { TrailBrokerPort } from "./broker.js";
 export { assertSnapshot, SnapshotError } from "./snapshot.js";

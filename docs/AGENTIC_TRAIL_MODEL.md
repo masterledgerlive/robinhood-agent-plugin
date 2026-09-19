@@ -8,6 +8,8 @@ Use **Agentic AI as the product we trail**, not as endless chat spend. Learn and
 
 **Default rails:** `DIVIDEND_15M` + `SURF_LEARN` + `SURF_ACT` ([DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md)). LOW_CAP_SLOW remains available. Learn runs **every** cycle. Live micros require **buying power ≥ $2**. One math-only next move per slot: park profits into banks first, then at most one working seat.
 
+**Wave autonomy:** `AGENTIC_MOVE_EQ` + pure wave functions arm per-token triggers every 15m from the tape alone ([AGENTIC_MOVE_EQ.md](AGENTIC_MOVE_EQ.md)). Cascade/whispers overlay routes. **Agents are optional** — cron still prints WHERE/WHEN when Cursor is silent.
+
 The live book’s job is to **produce or protect tokens under gates — not lose to churn.** IKN CORE ethics apply now as that discipline ([IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md)). The **IKN Network Project** is the cross-system bridge; this plugin stays the RH catalog. Solid pods, Merkle Trust Cards, and medical/cosmos phases are **WIP only** — do not implement them here.
 
 ## Non-negotiables
@@ -113,6 +115,7 @@ Small-capital research that locked LOW_CAP_SLOW: frequency is the killer on ~$20
 | Trail plain-text view | `src/log/trail-view.ts` (extends MACHINE VIEW) |
 | EXAMPLE fixtures | `tests/fixtures/trail/*.example.json` |
 | DIVIDEND_15M + SURF_LEARN + SURF_ACT | [DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md), `src/trail/surf-learn.ts`, `src/trail/surf-act.ts` |
+| Wave equation + per-token triggers | [AGENTIC_MOVE_EQ.md](AGENTIC_MOVE_EQ.md), `src/trail/equation.ts`, `src/trail/wave.ts`, `src/trail/triggers.ts` |
 | Red-day + whispers | [RED_DAY_WHISPER.md](RED_DAY_WHISPER.md), `src/trail/red-day.ts` |
 | IKN CORE ethics (usable now; protocol WIP) | [IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md) |
 

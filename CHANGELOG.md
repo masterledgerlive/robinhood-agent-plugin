@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+
+- AGENTIC_MOVE_EQ_v1: refineable TP/stop/park/whisper score knobs shared by triggers.
+- Pure wave functions (trough/momentum/mean-revert/fade/flat) — tape only; agents optional.
+- Per-token automatic triggers every 15m (WHERE/WHEN + optional broker alert specs). Cron works when agents are silent.
+- TRAIL VIEW prints WAVES + TRIGGERS. Watcher still never places.
+
 ## 1.1.0
 
 - Agentic trail / surf scaffold: named trick catalog, follow-path + success ledger, deterministic 15m watcher.

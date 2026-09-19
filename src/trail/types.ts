@@ -219,6 +219,80 @@ export type NextMove = {
   path_id?: string;
 };
 
+/** Per-token auto trigger — armed by wave math; agents optional. */
+export type TriggerRole = "bank" | "working" | "dust" | "candidate" | "whisper";
+export type TriggerState = "waiting" | "armed" | "fired" | "blocked";
+export type TriggerAction =
+  | "none"
+  | "hold_bank"
+  | "hold_dust"
+  | "park_to_near"
+  | "park_to_chip"
+  | "enter_trough"
+  | "enter_mean_revert"
+  | "enter_momentum"
+  | "exit_to_dust"
+  | "buy_trough";
+
+/** Broker create_alert shape — recommend only; watcher never writes alerts. */
+export type TriggerBrokerAlertSpec = {
+  symbol: string;
+  asset_class: "crypto" | "equity";
+  condition_type: "price_above" | "price_below";
+  threshold: string;
+  purpose: "take_profit" | "stop" | "trough_reclaim";
+};
+
+export type TokenTrigger = {
+  symbol: string;
+  role: TriggerRole;
+  state: TriggerState;
+  where: TriggerAction;
+  when: {
+    takeProfitMark?: number;
+    stopMark?: number;
+    troughReclaimMark?: number;
+    parkEligible: boolean;
+    leaveDustUsd?: number;
+    equation: string;
+  };
+  cascade: {
+    whisperScore: number;
+    route: WhisperRouteHint | null;
+    sources: string[];
+    equation: string;
+  };
+  brokerAlerts: TriggerBrokerAlertSpec[];
+  /** Always false for wave arms — cron works when agents are silent. */
+  agentRequired: boolean;
+  wave?: {
+    kind: string;
+    amplitude: number;
+    phase: number | null;
+    edgeClears: boolean;
+    spreadOk: boolean;
+    equation: string;
+  };
+};
+
+export type TokenTriggerPlan = {
+  eqId: string;
+  asOf: string;
+  agentRequired: false;
+  waves: Array<{
+    symbol: string;
+    kind: string;
+    amplitude: number;
+    phase: number | null;
+    edgeClears: boolean;
+    spreadOk: boolean;
+    equation: string;
+  }>;
+  tokens: TokenTrigger[];
+  actionableCount: number;
+  next: { symbol: string; where: TriggerAction; reason: string };
+};
+
 export type WatchResult = {
   status: "quiet" | "alert";
   asOf: string;
@@ -228,6 +302,8 @@ export type WatchResult = {
   learn: SurfLearnResult;
   redDay: RedDayResult;
   nextMove: NextMove;
+  /** Automatic per-token triggers from wave equation. Agents optional. */
+  triggers: TokenTriggerPlan;
 };
 
 export type TrickRank = {

@@ -125,6 +125,30 @@ export function formatTrailView(input: {
           return `  ${pad(w.whisper_id, 22)} ${pad(w.source, 18)} ${pad(w.theme, 16)} ${pad(w.status, 11)} ${w.route_hint} ${w.tokens.join(",")}`;
         });
 
+  const trig = input.watch?.triggers;
+  const triggerHeader = !trig
+    ? ["  none"]
+    : [
+        `  eq ${trig.eqId}  agent_required=${trig.agentRequired}  actionable=${trig.actionableCount}`,
+        `  NEXT WAVE  ${trig.next.where} ${trig.next.symbol} — ${singleLine(trig.next.reason)}`,
+      ];
+  const triggerLines =
+    !trig || trig.tokens.length === 0
+      ? ["  none"]
+      : trig.tokens.map((t) => {
+          const wave = t.wave ? ` wave=${t.wave.kind}@${(t.wave.amplitude * 100).toFixed(2)}%` : "";
+          const tp =
+            t.when.takeProfitMark !== undefined ? ` tp=${t.when.takeProfitMark.toFixed(4)}` : "";
+          const stop = t.when.stopMark !== undefined ? ` stop=${t.when.stopMark.toFixed(4)}` : "";
+          return `  ${pad(t.symbol, 12)} ${pad(t.role, 10)} ${pad(t.state, 8)} ${pad(t.where, 18)}${tp}${stop}${wave}`;
+        });
+  const waveLines =
+    !trig || trig.waves.length === 0
+      ? ["  none"]
+      : trig.waves.slice(0, 8).map((w) => {
+          return `  ${pad(w.symbol, 12)} ${pad(w.kind, 16)} amp=${(w.amplitude * 100).toFixed(2)}% edge=${w.edgeClears} spread=${w.spreadOk}`;
+        });
+
   return [
     "=== TRAIL VIEW ===",
     `TIME    ${at}`,
@@ -137,6 +161,11 @@ export function formatTrailView(input: {
     `BP      ${bpLine}`,
     "NEXT MOVE",
     ...nextMoveLines,
+    "WAVES (pure tape — agents optional)",
+    ...waveLines,
+    "TRIGGERS (auto per token)",
+    ...triggerHeader,
+    ...triggerLines,
     "CANDIDATES",
     ...candidateLines,
     "WHAT-IF TOP",
@@ -176,6 +205,9 @@ export function watchToMachineLog(
       surf_learn: true,
       surf_act: watch.nextMove.action,
       red_day: watch.redDay.status,
+      triggers: watch.triggers.actionableCount,
+      eq: watch.triggers.eqId,
+      wave_next: watch.triggers.next.where,
     },
     result: {
       ok: true,
@@ -183,8 +215,8 @@ export function watchToMachineLog(
         watch.redDay.status === "fired"
           ? `alert | RED_DAY fired; ${watch.redDay.recommendations.exitWorkingToDust.length} exit seats (no place)`
           : watch.status === "quiet"
-            ? `quiet | 0 live candidates; SURF_LEARN top ${watch.learn.whatIfTop.length}`
-            : `alert | ${n} ${names || watch.redDay.status}`,
+            ? `quiet | 0 live candidates; SURF_LEARN top ${watch.learn.whatIfTop.length}; wave ${watch.triggers.next.where}`
+            : `alert | ${n || watch.triggers.actionableCount} ${names || watch.triggers.next.where || watch.redDay.status}`,
       orderId: null,
       fillId: null,
       realizedPnl: null,
@@ -193,8 +225,8 @@ export function watchToMachineLog(
       watch.redDay.status === "fired"
         ? "RED_DAY fired. Recommend exit working to dust + staged buy_trough. Watcher did not place."
         : watch.status === "quiet"
-          ? "Quiet live book. SURF_LEARN what-if ranks updated. No place."
-          : "Alert. Agent/human may step in on gate-clear tricks. No order placed by watcher.",
+          ? "Quiet live book. Wave triggers armed from tape. SURF_LEARN ranks updated. No place. Agents optional."
+          : "Alert from wave math and/or gate-clear tricks. Agents optional — cron already knows WHERE/WHEN. No place.",
   };
   return entry;
 }

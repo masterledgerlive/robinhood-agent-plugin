@@ -5,6 +5,7 @@ import type { SuccessLedger } from "./ledger.js";
 import { redDayTrigger } from "./red-day.js";
 import { recommendNextMove } from "./surf-act.js";
 import { runSurfLearn } from "./surf-learn.js";
+import { armTokenTriggers } from "./triggers.js";
 import type { PortfolioSnapshot, WatchCandidate, WatchResult, WhisperCard } from "./types.js";
 
 const CHASE_TRICKS = new Set(["trough_bounce_15m", "momentum_15m", "mean_revert_15m"]);
@@ -12,6 +13,7 @@ const CHASE_TRICKS = new Set(["trough_bounce_15m", "momentum_15m", "mean_revert_
 /**
  * Deterministic 15m evaluate.
  * Live quiet is the default. SURF_LEARN paper what-ifs run every cycle.
+ * Wave triggers arm every token from the tape — agents optional.
  * Red-day / whisper layer recommends only — never places.
  */
 export function watch15m(
@@ -52,8 +54,17 @@ export function watch15m(
   );
   const learn = runSurfLearn(snapshot, ledger, liveHits);
   const nextMove = recommendNextMove({ candidates, learn, redDay });
+  const triggers = armTokenTriggers(snapshot, inbox, { redDay, candidates });
 
-  const liveQuiet = candidates.length === 0 && !redDay.active;
+  // Wave plan always prints. Only working TP/stop/park/red-day *fires* wake WATCH.
+  // Candidate wave arms stay visible without flipping quiet → alert (agents optional).
+  const waveFire = triggers.tokens.some(
+    (t) =>
+      t.state === "fired" &&
+      (t.role === "working" || t.where === "exit_to_dust" || t.when.parkEligible),
+  );
+
+  const liveQuiet = candidates.length === 0 && !redDay.active && !waveFire;
   const result: WatchResult = {
     status: liveQuiet ? "quiet" : "alert",
     asOf: snapshot.asOf,
@@ -63,6 +74,7 @@ export function watch15m(
     learn,
     redDay,
     nextMove,
+    triggers,
   };
 
   if (ledger && result.status === "alert") {
