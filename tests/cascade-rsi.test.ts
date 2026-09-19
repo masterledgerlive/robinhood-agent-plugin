@@ -306,4 +306,44 @@ describe("cascade %-hit jump-out + near-support destination", () => {
     const mark = cascadeJumpOutMark(1.0, 0.002);
     assert.ok(Math.abs(mark - (1 + thr)) < 1e-12);
   });
+
+  it("uses sessionOpen as edge basis when cost is missing (live transfers)", () => {
+    const snap: PortfolioSnapshot = {
+      example: true,
+      asOf: "2026-09-19T21:00:00.000Z",
+      account: { rhsAccountNumber: "813839826", agenticAllowed: true },
+      mode: "DIVIDEND_15M",
+      buyingPowerUsd: 1.8,
+      sleeves: [
+        {
+          symbol: "ENA-USD",
+          role: "working",
+          notionalUsd: 0.12,
+          peakNotionalUsd: 0.12,
+          markUsd: 0.1988,
+        },
+      ],
+      quotes: [
+        {
+          symbol: "ENA-USD",
+          bid: 0.196,
+          ask: 0.2,
+          mark: 0.1988,
+          sessionOpen: 0.1833,
+        },
+      ],
+      troughs: [],
+      day: {
+        date: "2026-09-19",
+        newWorkingEntries: 0,
+        realizedPnlUsd: null,
+        losingWorkingRoundTrips: 0,
+      },
+    };
+    const exit = cascadeExitOf(snap, "ENA");
+    assert.ok(exit);
+    assert.ok(exit!.edgePct !== null && exit!.edgePct > 5);
+    assert.equal(exit!.jumpOutHit, true);
+    assert.equal(exit!.fire, true);
+  });
 });

@@ -248,8 +248,16 @@ function armWorking(
   }
 
   let cascadeJump: number | undefined;
-  if (quote && basis !== undefined && basis > 0) {
-    cascadeJump = cascadeJumpOutMark(basis, rtSpread(quote), eq);
+  if (quote) {
+    const basisForJump =
+      basis !== undefined && basis > 0
+        ? basis
+        : quote.sessionOpen !== undefined && quote.sessionOpen > 0
+          ? quote.sessionOpen
+          : undefined;
+    if (basisForJump !== undefined) {
+      cascadeJump = cascadeJumpOutMark(basisForJump, rtSpread(quote), eq);
+    }
   }
 
   const trigger: TokenTrigger = {

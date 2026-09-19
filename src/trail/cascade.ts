@@ -89,10 +89,16 @@ export function supportMarkOf(quote: Quote, trough?: TroughWindow): number | nul
 }
 
 function sleeveEdge(sleeve: Sleeve, quote: Quote): number | null {
-  const cost = sleeve.costBasisUsd;
   const mark = sleeve.markUsd ?? quote.mark;
-  if (cost === undefined || !(cost > 0) || !(mark > 0)) return null;
-  return (mark - cost) / cost;
+  if (!(mark > 0)) return null;
+  const cost = sleeve.costBasisUsd;
+  if (cost !== undefined && cost > 0) return (mark - cost) / cost;
+  // Live transfers/rewards often lack direct cost — fall back to session open so
+  // %-hit jump-out still arms (never invent a fill; open is already on the tape).
+  if (quote.sessionOpen !== undefined && quote.sessionOpen > 0) {
+    return (mark - quote.sessionOpen) / quote.sessionOpen;
+  }
+  return null;
 }
 
 /** Stale = flat/fade tape, or armed ride that lost amplitude and stalled. */
