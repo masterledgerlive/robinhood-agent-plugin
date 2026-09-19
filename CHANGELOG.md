@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0
+
+- **AGENTIC_MOVE_EQ_v4:** correct Wilder RSI(14) from `quote.closes` (leave-overbought = rollingDown). No invented few-sample “tape RSI.”
+- Stale-profit / failed-peak cascade exit: fire on trick_out, full DIVIDEND TP (1.2%), or edge≥max(0.3%, 1.5×RT) with stale/RSI/failed-peak — **not** peak_armed alone.
+- Cascade destinations = near-support healthy amplitude (“lowest promising”), not cheapest absolute price.
+- Support line = troughMark ?? sessionOpen. Broker `support` alert purpose on working seats.
+- Restored locked DIVIDEND_15M TP/stop floors after a bad intermediate edit.
+
 ## 1.4.0
 
 - **Lesson 2026-09-19:** when everything goes red, fire on book+tape (session-open majority if `mark15m` missing), exit working to dust, **green-only shelter** until bottoms, then **agentless trough re-entry**. Clear when NEAR reclaims open.

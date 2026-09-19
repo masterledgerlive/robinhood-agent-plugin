@@ -11,19 +11,25 @@ import { quoteSpread, rtSpread } from "./gates.js";
 import type { Quote, WhisperCard, WhisperRouteHint } from "./types.js";
 
 /**
- * v3 equation knobs.
+ * v4 equation knobs — Wilder RSI rollback + stale-profit cascade (agentless).
  *
- * take_profit_pct = max(tpFloor, tpSpreadK * one_way_spread)
- * stop_pct        = max(stopFloor, stopSpreadK * one_way_spread)
+ * Locked TP/stop floors stay on DIVIDEND_15M (Game 2026-09-18):
+ *   take_profit_pct = max(1.2%, 1.5 × one_way_spread)
+ *   stop_pct        = max(2.0%, 2.0 × one_way_spread)
  * live_edge_ok    = edge >= liveEdgeK * RT_spread   (RT = 2× one-way)
  * park_edge_ok    = edge >= parkEdgeK * RT_spread
  * whisper_score   = min(1, sources/minSources * (1-w) + meanConfidence * w)
  * higherPeak      = localHigh × (1 + higherPeakExtension)
  * second_wave     = hardPullback ∧ reclaiming → ride toward higherPeak
+ * cascade_exit    = trick_out|crash_start
+ *                 ∨ edge ≥ TP
+ *                 ∨ (edge ≥ max(micro, liveEdge×RT) ∧ (stale ∨ rsiLeaveOB ∨ failedPeak))
+ * cascade_dest    = healthy amp near support (wave low) — not cheapest absolute price
+ * rsi             = Wilder(period) on quote.closes; rollingDown = leave overbought
  * credit_discipline: quiet watch = 0 credits; agent step-in only on alert
  */
 export const AGENTIC_MOVE_EQ = {
-  id: "AGENTIC_MOVE_EQ_v3",
+  id: "AGENTIC_MOVE_EQ_v4",
   /** Sleeve take-profit floor (DIVIDEND_15M: 1.2%). */
   takeProfitFloorPct: 0.012,
   /** TP as multiple of one-way spread (DIVIDEND_15M: 1.5×). */
@@ -64,11 +70,32 @@ export const AGENTIC_MOVE_EQ = {
    */
   higherPeakExtension: 0.015,
   secondWavePrimeBoost: 0.35,
-  /** Prime destination score weights (must sum sensibly; not required = 1). */
-  primeClimbWeight: 0.4,
-  primeWaveWeight: 0.3,
-  primeGateWeight: 0.3,
+  /** Prime / cascade destination score weights. */
+  primeClimbWeight: 0.35,
+  primeWaveWeight: 0.25,
+  primeGateWeight: 0.25,
   primePeakPenalty: 0.5,
+  /** Prefer healthy volatile amplitude when cascading into the next seat. */
+  primeVolatilityWeight: 1.2,
+  /** Prefer names sitting at the wave low (near support) — "lowest promising". */
+  primeSupportWeight: 0.45,
+  /**
+   * Early cascade rotate (DIVIDEND: unrealized ≥ edge → next path).
+   * Floor so a tiny print still rotates when stale / RSI / failed peak confirms.
+   */
+  cascadeMicroProfitPct: 0.003,
+  /** Wave amplitude below this + stall ⇒ stale. */
+  staleAmplitudeMax: 0.002,
+  /** Wilder RSI period (needs period+1 closes). */
+  rsiPeriod: 14,
+  /** Classic overbought — leave this zone = rollingDown. */
+  rsiOverbought: 70,
+  /** Elevated RSI with down close + turn = soft rollback confirm. */
+  rsiElevated: 55,
+  /** Healthy volatile swing for cascade destinations. */
+  volatileHealthyMinAmp: 0.008,
+  /** (mark − support) / support ≤ this ⇒ near support (wave low). */
+  nearSupportMaxPct: 0.025,
   /**
    * Agentic usage credits (communication / ML refinement loop).
    * Deterministic 15m watch burns 0 Cursor credits.

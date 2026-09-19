@@ -11,7 +11,7 @@ Treat **Agentic AI turn credits** and **on-chain / RH token activity** as one re
 
 This is how communication and ML get sharper without burning chat on quiet books.
 
-## Credit table (`AGENTIC_MOVE_EQ_v3`)
+## Credit table (`AGENTIC_MOVE_EQ_v4`)
 
 | Event | Credits | Notes |
 | --- | --- | --- |

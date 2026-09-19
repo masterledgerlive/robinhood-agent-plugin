@@ -5,7 +5,7 @@ export const DEFAULT_PROTOCOL_VERSION = "2025-03-26";
 
 export const CLIENT_INFO = {
   name: "robinhood-agent-plugin",
-  version: "1.1.0",
+  version: "1.5.0",
 } as const;
 
 /** RISK-only. SAVE / vault is never a valid trading bucket for this plugin. */

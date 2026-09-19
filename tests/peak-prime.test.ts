@@ -18,10 +18,14 @@ function loadExample(name: string): PortfolioSnapshot {
 }
 
 describe("peak + primed rotate + second wave", () => {
-  it("exports v3 peak / second-wave / credit knobs", () => {
-    assert.equal(AGENTIC_MOVE_EQ.id, "AGENTIC_MOVE_EQ_v3");
+  it("exports v4 peak / second-wave / Wilder RSI / credit knobs", () => {
+    assert.equal(AGENTIC_MOVE_EQ.id, "AGENTIC_MOVE_EQ_v4");
     assert.equal(AGENTIC_MOVE_EQ.peakArmProximity, 0.985);
     assert.equal(AGENTIC_MOVE_EQ.higherPeakExtension, 0.015);
+    assert.equal(AGENTIC_MOVE_EQ.takeProfitFloorPct, 0.012);
+    assert.equal(AGENTIC_MOVE_EQ.stopFloorPct, 0.02);
+    assert.equal(AGENTIC_MOVE_EQ.rsiPeriod, 14);
+    assert.equal(AGENTIC_MOVE_EQ.rsiOverbought, 70);
     assert.equal(AGENTIC_MOVE_EQ.creditsPerQuietWatch, 0);
     assert.equal(AGENTIC_MOVE_EQ.creditsPerAlertStepIn, 1);
   });

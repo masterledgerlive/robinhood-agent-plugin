@@ -98,6 +98,17 @@ export { peakOf, absolutePeakMark, higherPeakMark, peakPullbackAlertMark, workin
 export type { PeakMode, PeakState } from "./peak.js";
 export { rankPrimedTokens, topPrimedToken } from "./prime.js";
 export type { PrimeCandidate } from "./prime.js";
+export {
+  cascadeExitOf,
+  workingCascadeExits,
+  rankCascadeDestinations,
+  topCascadeDestination,
+  supportMarkOf,
+  idleBuyingPowerPressure,
+} from "./cascade.js";
+export type { CascadeExitState, CascadeDestination } from "./cascade.js";
+export { wilderRsi, wilderRsiPair, rsiRollingDown, tapeRsiOf, closesForRsi } from "./rsi.js";
+export type { WilderRsiState } from "./rsi.js";
 export { armTokenTriggers } from "./triggers.js";
 export { FixtureBroker } from "./broker.js";
 export type { TrailBrokerPort } from "./broker.js";
