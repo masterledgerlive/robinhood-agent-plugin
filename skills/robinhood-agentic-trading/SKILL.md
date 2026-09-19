@@ -137,7 +137,7 @@ If Lane A tools are missing, log that fact and run Lane B only.
 
 ### 8. Trail watch (alerts only)
 
-The 15m watcher in `src/trail/` is deterministic. Cron it. Do not start a chat turn to re-check an unchanged book. Step in on `WATCH   alert` or Game authorize. See [docs/AGENTIC_TRAIL_MODEL.md](../../docs/AGENTIC_TRAIL_MODEL.md).
+The 15m watcher in `src/trail/` is deterministic. Cron it. SURF_LEARN + SURF_ACT run every cycle; do not start a chat turn to re-check an unchanged live book. Prefer printed `NEXT MOVE` (park/accumulate first). Live micros need BP ≥ $2. Step in on `WATCH   alert` or Game authorize. See [docs/AGENTIC_TRAIL_MODEL.md](../../docs/AGENTIC_TRAIL_MODEL.md).
 
 ## PnL
 

@@ -1,4 +1,3 @@
-import { LOW_CAP_SLOW } from "../trail/constants.js";
 import {
   baseSymbol,
   edgeClearsRt,
@@ -54,7 +53,7 @@ export function evaluatePark(snapshot: PortfolioSnapshot, target: ParkTarget): T
       continue;
     }
     const edge = (mark - cost) / cost;
-    if (!edgeClearsRt(edge, quote) && !authorized) {
+    if (!edgeClearsRt(edge, quote, snapshot) && !authorized) {
       lastFail = `${sleeve.symbol}: profit edge < 2× RT (need Game park authorize or a wider gate)`;
       continue;
     }
@@ -75,7 +74,7 @@ export function evaluatePark(snapshot: PortfolioSnapshot, target: ParkTarget): T
   const symbol = target;
   return {
     eligible: true,
-    reason: `Park ${profitable.map((s) => baseSymbol(s)).join(", ")} profit → ${target} (leave dust; ${LOW_CAP_SLOW.id})`,
+    reason: `Park ${profitable.map((s) => baseSymbol(s)).join(", ")} profit → ${target} (leave dust; accumulate banks)`,
     symbol,
   };
 }

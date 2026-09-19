@@ -23,8 +23,9 @@
         "agenticAllowed": { "type": "boolean" }
       }
     },
-    "mode": { "const": "LOW_CAP_SLOW" },
+    "mode": { "enum": ["LOW_CAP_SLOW", "DIVIDEND_15M"] },
     "equityUsd": { "type": "number" },
+    "buyingPowerUsd": { "type": "number" },
     "sleeves": { "type": "array" },
     "quotes": { "type": "array" },
     "troughs": { "type": "array" },
@@ -38,6 +39,7 @@
         "losingWorkingRoundTrips": { "type": "integer", "minimum": 0 }
       }
     },
-    "authorize": { "type": "object" }
+    "authorize": { "type": "object" },
+    "whispers": { "type": "array" }
   }
 }

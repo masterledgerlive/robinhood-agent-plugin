@@ -112,7 +112,9 @@ npm run watch:15m -- --snapshot tests/fixtures/trail/quiet.example.json
 npm run trail:view -- --ledger tests/fixtures/trail/ledger.example.json
 ```
 
-Quiet is the default. Alert lists trick candidates that cleared **LOW_CAP_SLOW** gates (spread ≤0.8%, edge ≥2× RT, trough+bounce, max 1 new working entry/day, max 2 working seats, dust floors, never flatten). The watcher never places an order.
+Quiet **live** is the default. **SURF_LEARN** still runs every cycle ($2 paper what-ifs) and prints `WHAT-IF TOP`. **SURF_ACT** prints one `NEXT MOVE`: park working profit into banks first, then at most one 15m seat (trough → mean-revert → unlocked momentum). Momentum goes live after paper ≥50% over ≥3 trials (graduate prefer 55%/10). Alert lists trick candidates that cleared **DIVIDEND_15M** gates (spread ≤1.2%, edge ≥1.5× RT, max 8 new working entries/day, max 4 working seats; LOW_CAP_SLOW remains selectable). Live micros need **buying power ≥ $2**; otherwise learn only. The watcher never places an order.
+
+See [docs/DIVIDEND_15M_SURF.md](docs/DIVIDEND_15M_SURF.md). Red-day / agentic whispers are an early-warning layer: [docs/RED_DAY_WHISPER.md](docs/RED_DAY_WHISPER.md). Unverified chatter stays Wild West **quarantine**. On `RED_DAY fired` the watcher recommends exit-to-dust + staged troughs and still **does not place**.
 
 Banks stay **NEAR → FIL (display-only until MCP unlock) → CHIP**. Example Agentic rhs `813839826` (not a secret).
 

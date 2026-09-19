@@ -1,5 +1,17 @@
-import { BANK_ORDER, FIL_MCP_DISPLAY_ONLY, LOW_CAP_SLOW } from "./constants.js";
+import {
+  BANK_ORDER,
+  DIVIDEND_15M,
+  DUST_FLOORS,
+  FIL_MCP_DISPLAY_ONLY,
+  LOW_CAP_SLOW,
+  SURF_LEARN,
+  type GateProfile,
+} from "./constants.js";
 import type { PortfolioSnapshot, Quote, Sleeve, TroughWindow } from "./types.js";
+
+export function gateProfile(snapshot: Pick<PortfolioSnapshot, "mode">): GateProfile {
+  return snapshot.mode === "LOW_CAP_SLOW" ? LOW_CAP_SLOW : DIVIDEND_15M;
+}
 
 export function baseSymbol(symbol: string): string {
   return symbol.replace(/-USD$/i, "").toUpperCase();
@@ -58,13 +70,13 @@ export function rtSpread(quote: Quote): number {
 export function dustFloorUsd(sleeve: Sleeve): number {
   if (sleeve.role === "bank") {
     return Math.max(
-      LOW_CAP_SLOW.bankDustFloorUsd,
-      sleeve.peakNotionalUsd * LOW_CAP_SLOW.bankDustFloorPctOfPeak,
+      DUST_FLOORS.bankDustFloorUsd,
+      sleeve.peakNotionalUsd * DUST_FLOORS.bankDustFloorPctOfPeak,
     );
   }
   return Math.max(
-    LOW_CAP_SLOW.workingDustFloorUsd,
-    sleeve.peakNotionalUsd * LOW_CAP_SLOW.workingDustFloorPctOfPeak,
+    DUST_FLOORS.workingDustFloorUsd,
+    sleeve.peakNotionalUsd * DUST_FLOORS.workingDustFloorPctOfPeak,
   );
 }
 
@@ -81,28 +93,31 @@ export function maxTakeWithoutFlatten(sleeve: Sleeve): number {
 
 export function softHaltActive(snapshot: PortfolioSnapshot): boolean {
   const pnl = snapshot.day.realizedPnlUsd;
-  return pnl !== null && pnl <= LOW_CAP_SLOW.softHaltRealizedUsd;
+  const profile = gateProfile(snapshot);
+  return pnl !== null && pnl <= profile.softHaltRealizedUsd;
 }
 
 export function expectancyHaltActive(snapshot: PortfolioSnapshot): boolean {
-  return snapshot.day.losingWorkingRoundTrips >= LOW_CAP_SLOW.expectancyHaltLosingWorkingRts;
+  const profile = gateProfile(snapshot);
+  return snapshot.day.losingWorkingRoundTrips >= profile.expectancyHaltLosingWorkingRts;
 }
 
-export function spreadOk(quote: Quote): boolean {
-  return quoteSpread(quote) <= LOW_CAP_SLOW.maxSpread;
+export function spreadOk(quote: Quote, snapshot: PortfolioSnapshot): boolean {
+  return quoteSpread(quote) <= gateProfile(snapshot).maxSpread;
 }
 
-export function edgeClearsRt(edge: number, quote: Quote): boolean {
+export function edgeClearsRt(edge: number, quote: Quote, snapshot: PortfolioSnapshot): boolean {
   if (!(edge > 0) || !Number.isFinite(edge)) return false;
   const rt = rtSpread(quote);
   if (!Number.isFinite(rt)) return false;
-  return edge + 1e-12 >= LOW_CAP_SLOW.minEdgeMultipleOfRtSpread * rt;
+  return edge + 1e-12 >= gateProfile(snapshot).minEdgeMultipleOfRtSpread * rt;
 }
 
-export function troughWindowOk(trough: TroughWindow): boolean {
+export function troughWindowOk(trough: TroughWindow, snapshot: PortfolioSnapshot): boolean {
+  const profile = gateProfile(snapshot);
   return (
-    trough.windowMinutes >= LOW_CAP_SLOW.troughWindowMinMinutes &&
-    trough.windowMinutes <= LOW_CAP_SLOW.troughWindowMaxMinutes &&
+    trough.windowMinutes >= profile.troughWindowMinMinutes &&
+    trough.windowMinutes <= profile.troughWindowMaxMinutes &&
     trough.troughMark > 0 &&
     Number.isFinite(trough.troughMark)
   );
@@ -112,7 +127,11 @@ export function troughWindowOk(trough: TroughWindow): boolean {
  * Planned bounce edge uses trough → recentHigh. Current mark must have
  * reclaimed the trough and still be in the first half of that bounce (no chase).
  */
-export function troughBounceEdge(trough: TroughWindow, mark: number): {
+export function troughBounceEdge(
+  trough: TroughWindow,
+  mark: number,
+  snapshot: PortfolioSnapshot,
+): {
   ok: boolean;
   edge: number;
   chase: boolean;
@@ -125,9 +144,15 @@ export function troughBounceEdge(trough: TroughWindow, mark: number): {
   }
   const bounce = recentHigh - trough.troughMark;
   const ran = mark - trough.troughMark;
-  const chase = !reclaim || mark >= recentHigh || ran / bounce > LOW_CAP_SLOW.chaseMaxFractionOfBounce;
+  const chase =
+    !reclaim || mark >= recentHigh || ran / bounce > gateProfile(snapshot).chaseMaxFractionOfBounce;
   const edge = bounce / trough.troughMark;
   return { ok: reclaim && !chase && edge > 0, edge, chase, reclaim };
+}
+
+export function liveMicroBuyingPowerOk(snapshot: PortfolioSnapshot): boolean {
+  if (snapshot.buyingPowerUsd === undefined) return true;
+  return snapshot.buyingPowerUsd + 1e-12 >= SURF_LEARN.liveMicroMinBuyingPowerUsd;
 }
 
 export function refuseNonAgentic(): { eligible: false; reason: string } {
@@ -135,17 +160,22 @@ export function refuseNonAgentic(): { eligible: false; reason: string } {
 }
 
 export function refuseNewWorkingEntry(snapshot: PortfolioSnapshot): string | null {
+  const profile = gateProfile(snapshot);
   if (softHaltActive(snapshot)) {
-    return "soft_halt: day realized at or below −$1; no new working entry";
+    return `soft_halt: day realized at or below −$${Math.abs(profile.softHaltRealizedUsd)}; no new working entry`;
   }
   if (expectancyHaltActive(snapshot)) {
-    return "expectancy_halt: 5 losing working RTs; no new working entry";
+    return `expectancy_halt: ${profile.expectancyHaltLosingWorkingRts} losing working RTs; no new working entry`;
   }
-  if (snapshot.day.newWorkingEntries >= LOW_CAP_SLOW.maxNewWorkingEntriesPerDay) {
-    return "LOW_CAP_SLOW: max 1 new working entry/day";
+  if (!liveMicroBuyingPowerOk(snapshot)) {
+    return `buying power $${snapshot.buyingPowerUsd} < $${SURF_LEARN.liveMicroMinBuyingPowerUsd} — learn only, no live micro`;
   }
-  if (workingSeats(snapshot).length >= LOW_CAP_SLOW.maxWorkingSeats) {
-    return "LOW_CAP_SLOW: max 2 working seats";
+  if (snapshot.day.newWorkingEntries >= profile.maxNewWorkingEntriesPerDay) {
+    const n = profile.maxNewWorkingEntriesPerDay;
+    return `${profile.id}: max ${n} new working ${n === 1 ? "entry" : "entries"}/day`;
+  }
+  if (workingSeats(snapshot).length >= profile.maxWorkingSeats) {
+    return `${profile.id}: max ${profile.maxWorkingSeats} working seats`;
   }
   return null;
 }

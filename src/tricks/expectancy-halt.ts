@@ -1,11 +1,10 @@
-import { LOW_CAP_SLOW } from "../trail/constants.js";
-import { expectancyHaltActive, isAgenticAccount, refuseNonAgentic } from "../trail/gates.js";
+import { expectancyHaltActive, gateProfile, isAgenticAccount, refuseNonAgentic } from "../trail/gates.js";
 import type { TrickEvaluation } from "../trail/types.js";
 import type { Trick } from "./types.js";
 
 export const expectancyHalt: Trick = {
   id: "expectancy_halt",
-  whenItMayFire: "Protective no-new-working-entry after 5 losing working round-trips.",
+  whenItMayFire: "Protective no-new-working-entry after the active profile's losing working RTs.",
   paramsSchema: {
     type: "object",
     additionalProperties: false,
@@ -15,10 +14,11 @@ export const expectancyHalt: Trick = {
   },
   evaluate(snapshot): TrickEvaluation {
     if (!isAgenticAccount(snapshot)) return refuseNonAgentic();
+    const profile = gateProfile(snapshot);
     if (!expectancyHaltActive(snapshot)) {
       return {
         eligible: false,
-        reason: `Losing working RTs ${snapshot.day.losingWorkingRoundTrips} < ${LOW_CAP_SLOW.expectancyHaltLosingWorkingRts}`,
+        reason: `Losing working RTs ${snapshot.day.losingWorkingRoundTrips} < ${profile.expectancyHaltLosingWorkingRts}`,
       };
     }
     return {

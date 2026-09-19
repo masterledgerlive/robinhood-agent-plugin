@@ -28,10 +28,13 @@ function withAuthorize(
 }
 
 describe("trick catalog", () => {
-  it("exports the seven named algorithms", () => {
+  it("exports the named algorithms including SURF_LEARN tricks", () => {
     const ids = listTricks().map((t) => t.id);
     assert.deepEqual(ids, [
       "trough_bounce_15m",
+      "momentum_15m",
+      "mean_revert_15m",
+      "hold_bank",
       "bank_sleeve_authorized",
       "deconcentrate_high_notional",
       "park_to_near",
@@ -192,11 +195,17 @@ describe("trick catalog", () => {
     assert.equal(soft.eligible, true);
     assert.match(soft.reason, /soft_halt/);
 
-    const exp = evaluateTrick("expectancy_halt", withDay(quiet, { losingWorkingRoundTrips: 5 }));
+    const exp = evaluateTrick("expectancy_halt", withDay(quiet, { losingWorkingRoundTrips: 8 }));
     assert.equal(exp.eligible, true);
 
-    const notYet = evaluateTrick("expectancy_halt", withDay(quiet, { losingWorkingRoundTrips: 4 }));
+    const notYet = evaluateTrick("expectancy_halt", withDay(quiet, { losingWorkingRoundTrips: 5 }));
     assert.equal(notYet.eligible, false);
+
+    const slowFive = evaluateTrick(
+      "expectancy_halt",
+      withDay({ ...quiet, mode: "LOW_CAP_SLOW" }, { losingWorkingRoundTrips: 5 }),
+    );
+    assert.equal(slowFive.eligible, true);
   });
 
   it("non-agentic snapshots make every trick ineligible", () => {
@@ -209,5 +218,19 @@ describe("trick catalog", () => {
       assert.equal(ev.eligible, false);
       assert.match(ev.reason, /Agentic/);
     }
+  });
+
+  it("momentum_15m is live-eligible on DIVIDEND signal but hold_bank is never live", () => {
+    const quiet = loadExample("quiet.example.json");
+    const momentum = evaluateTrick("momentum_15m", quiet);
+    assert.equal(momentum.eligible, true);
+    assert.match(momentum.reason, /ENA-USD/);
+
+    const slow = evaluateTrick("momentum_15m", { ...quiet, mode: "LOW_CAP_SLOW" });
+    assert.equal(slow.eligible, false);
+
+    const hold = evaluateTrick("hold_bank", quiet);
+    assert.equal(hold.eligible, false);
+    assert.match(hold.reason, /baseline/);
   });
 });

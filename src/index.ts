@@ -29,11 +29,17 @@ export {
   BANK_ORDER,
   FIL_MCP_DISPLAY_ONLY,
   LOW_CAP_SLOW,
+  DIVIDEND_15M,
+  SURF_LEARN,
+  SURF_ACT,
+  RED_DAY,
   TRAIL_HORIZON_DEFAULT,
   TRICK_IDS,
   SuccessLedger,
   LedgerError,
   watch15m,
+  recommendNextMove,
+  redDayTrigger,
   FixtureBroker,
   assertSnapshot,
   SnapshotError,
@@ -41,6 +47,7 @@ export {
   ledgerAttemptSchema,
   portfolioSnapshotSchema,
   successLedgerSchema,
+  whisperCardSchema,
 } from "./trail/index.js";
 export type {
   FollowPath,
@@ -49,6 +56,10 @@ export type {
   TrailBrokerPort,
   TrickEvaluation,
   WatchResult,
+  WhatIfPath,
+  WhisperCard,
+  RedDayResult,
+  NextMove,
 } from "./trail/index.js";
 export {
   TRICK_CATALOG,

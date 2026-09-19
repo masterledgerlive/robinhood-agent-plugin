@@ -1,0 +1,28 @@
+{
+  "example": true,
+  "$comment": "EXAMPLE — two independent agentic red_day whispers. Quarantine until book/tape confirms. Not live fills.",
+  "whispers": [
+    {
+      "example": true,
+      "whisper_id": "example-cascade-red",
+      "heard_at": "2026-09-18T16:50:00.000Z",
+      "source": "cascade_chatter",
+      "theme": "red_day",
+      "tokens": ["WLD-USD"],
+      "route_hint": "exit_working",
+      "confidence": 0.6,
+      "status": "quarantine"
+    },
+    {
+      "example": true,
+      "whisper_id": "example-external-trough",
+      "heard_at": "2026-09-18T16:52:00.000Z",
+      "source": "external_agentic",
+      "theme": "red_day",
+      "tokens": ["WLD-USD", "SEI-USD"],
+      "route_hint": "buy_trough",
+      "confidence": 0.55,
+      "status": "quarantine"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/masterledgerlive/robinhood-agent-plugin/schemas/whisper-card.json",
+  "title": "WhisperCard",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "whisper_id",
+    "heard_at",
+    "source",
+    "theme",
+    "tokens",
+    "route_hint",
+    "confidence",
+    "status"
+  ],
+  "properties": {
+    "example": { "type": "boolean" },
+    "$comment": { "type": "string" },
+    "whisper_id": { "type": "string" },
+    "heard_at": { "type": "string", "format": "date-time" },
+    "source": { "type": "string" },
+    "theme": { "type": "string", "enum": ["red_day", "massive_up", "token_specific"] },
+    "tokens": { "type": "array", "items": { "type": "string" } },
+    "route_hint": { "type": "string", "enum": ["exit_working", "hold_banks", "buy_trough"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["quarantine", "confirmed", "expired"],
+      "description": "IKN Wild West: unverified agentic chatter starts in quarantine"
+    }
+  }
+}
