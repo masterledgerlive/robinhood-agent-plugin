@@ -39,6 +39,7 @@
         "losingWorkingRoundTrips": { "type": "integer", "minimum": 0 }
       }
     },
-    "authorize": { "type": "object" }
+    "authorize": { "type": "object" },
+    "whispers": { "type": "array" }
   }
 }

@@ -1,0 +1,17 @@
+{
+  "example": true,
+  "$comment": "EXAMPLE — single quarantined rumor. IKN Wild West. Not a live fill or order.",
+  "whispers": [
+    {
+      "example": true,
+      "whisper_id": "example-rumor-1",
+      "heard_at": "2026-09-18T16:50:00.000Z",
+      "source": "news",
+      "theme": "red_day",
+      "tokens": ["WLD-USD"],
+      "route_hint": "exit_working",
+      "confidence": 0.3,
+      "status": "quarantine"
+    }
+  ]
+}

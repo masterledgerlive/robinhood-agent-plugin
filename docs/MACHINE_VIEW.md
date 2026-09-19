@@ -206,6 +206,10 @@ CANDIDATES
   none
 WHAT-IF TOP
   1  surf:momentum_15m:ENA              paper +0.0599  live=no  momentum_15m ENA-USD
+RED_DAY
+  status quiet  legs whisper=false book=false tape=false
+WHISPERS
+  none
 PATHS
   example-trough-wld-15m     github_code        15m  trough_bounce_15m            rate n/a  trailing
 TRICK RANKS

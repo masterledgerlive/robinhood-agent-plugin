@@ -116,5 +116,6 @@ export const portfolioSnapshotSchema = {
       },
     },
     authorize: { type: "object" },
+    whispers: { type: "array", description: "Optional whisper inbox; default status quarantine" },
   },
 } as const;

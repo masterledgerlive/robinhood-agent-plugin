@@ -31,11 +31,13 @@ export {
   LOW_CAP_SLOW,
   DIVIDEND_15M,
   SURF_LEARN,
+  RED_DAY,
   TRAIL_HORIZON_DEFAULT,
   TRICK_IDS,
   SuccessLedger,
   LedgerError,
   watch15m,
+  redDayTrigger,
   FixtureBroker,
   assertSnapshot,
   SnapshotError,
@@ -43,6 +45,7 @@ export {
   ledgerAttemptSchema,
   portfolioSnapshotSchema,
   successLedgerSchema,
+  whisperCardSchema,
 } from "./trail/index.js";
 export type {
   FollowPath,
@@ -52,6 +55,8 @@ export type {
   TrickEvaluation,
   WatchResult,
   WhatIfPath,
+  WhisperCard,
+  RedDayResult,
 } from "./trail/index.js";
 export {
   TRICK_CATALOG,

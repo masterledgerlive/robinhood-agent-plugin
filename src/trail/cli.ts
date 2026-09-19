@@ -2,8 +2,8 @@
 /**
  * Deterministic 15m trail watcher CLI.
  *
- *   tsx src/trail/cli.ts watch --snapshot <file> [--ledger <file>] [--json]
- *   tsx src/trail/cli.ts view  [--snapshot <file>] [--ledger <file>]
+ *   tsx src/trail/cli.ts watch --snapshot <file> [--ledger <file>] [--whispers <file>] [--json]
+ *   tsx src/trail/cli.ts view  [--snapshot <file>] [--ledger <file>] [--whispers <file>]
  *
  * Reads local fixtures only. Never places orders. Never calls Robinhood MCP.
  */
@@ -13,11 +13,14 @@ import { FixtureBroker } from "./broker.js";
 import { SuccessLedger } from "./ledger.js";
 import { assertSnapshot } from "./snapshot.js";
 import { watch15m } from "./watcher.js";
+import { loadWhisperFile } from "./whisper.js";
+import type { WhisperCard } from "./types.js";
 
 type Flags = {
   command: "watch" | "view" | "help";
   snapshot?: string;
   ledger?: string;
+  whispers?: string;
   json: boolean;
 };
 
@@ -32,8 +35,11 @@ function parseArgs(argv: string[]): Flags {
     else if (arg === "--snapshot" && next) {
       flags.snapshot = next;
       i += 1;
-    } else if (arg === "--ledger" && next) {
+    }     else if (arg === "--ledger" && next) {
       flags.ledger = next;
+      i += 1;
+    } else if (arg === "--whispers" && next) {
+      flags.whispers = next;
       i += 1;
     }
   }
@@ -54,6 +60,7 @@ async function main(argv = process.argv.slice(2)): Promise<number> {
 
   const snapshot = flags.snapshot ? loadSnapshot(flags.snapshot) : undefined;
   const ledger = flags.ledger ? SuccessLedger.loadFile(flags.ledger) : new SuccessLedger({ example: true });
+  const whispers: WhisperCard[] = flags.whispers ? loadWhisperFile(flags.whispers) : [];
 
   if (flags.command === "watch") {
     if (!snapshot) {
@@ -62,7 +69,7 @@ async function main(argv = process.argv.slice(2)): Promise<number> {
     }
     const broker = new FixtureBroker(snapshot);
     const loaded = await broker.loadSnapshot();
-    const watch = watch15m(loaded, ledger);
+    const watch = watch15m(loaded, ledger, whispers);
     if (flags.ledger) ledger.saveFile(flags.ledger);
     if (flags.json) {
       process.stdout.write(`${JSON.stringify({ example: loaded.example === true, watch }, null, 2)}\n`);
@@ -72,7 +79,7 @@ async function main(argv = process.argv.slice(2)): Promise<number> {
     return 0;
   }
 
-  const watch = snapshot ? watch15m(snapshot, ledger) : undefined;
+  const watch = snapshot ? watch15m(snapshot, ledger, whispers) : undefined;
   if (flags.json) {
     process.stdout.write(
       `${JSON.stringify({ example: true, paths: ledger.paths, ranks: ledger.rankedTricks(), alerts: ledger.lastAlerts(), watch: watch ?? null }, null, 2)}\n`,
@@ -92,8 +99,8 @@ function usage(): string {
   return [
     "rh-trail — deterministic 15m watcher (no orders, no MCP)",
     "",
-    "  watch --snapshot <file> [--ledger <file>] [--json]",
-    "  view  [--snapshot <file>] [--ledger <file>] [--json]",
+    "  watch --snapshot <file> [--ledger <file>] [--whispers <file>] [--json]",
+    "  view  [--snapshot <file>] [--ledger <file>] [--whispers <file>] [--json]",
     "",
     "Quiet is the default. Alert only when a named trick clears LOW_CAP_SLOW gates.",
     "Cron this. Do not spend Cursor/agent credits on unchanged 15m checks.",

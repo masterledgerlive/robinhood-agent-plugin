@@ -1,0 +1,62 @@
+{
+  "example": true,
+  "$comment": "EXAMPLE — constructed red-day book for tests. Not a live broker snapshot. Do not treat as real fills or PnL.",
+  "asOf": "2026-09-18T17:15:00.000Z",
+  "account": {
+    "rhsAccountNumber": "813839826",
+    "agenticAllowed": true
+  },
+  "mode": "DIVIDEND_15M",
+  "equityUsd": 20,
+  "buyingPowerUsd": 3,
+  "sleeves": [
+    {
+      "symbol": "NEAR-USD",
+      "role": "bank",
+      "notionalUsd": 8.5,
+      "peakNotionalUsd": 8.5
+    },
+    {
+      "symbol": "FIL-USD",
+      "role": "bank",
+      "notionalUsd": 2.1,
+      "peakNotionalUsd": 2.1
+    },
+    {
+      "symbol": "CHIP-USD",
+      "role": "bank",
+      "notionalUsd": 3.4,
+      "peakNotionalUsd": 3.4
+    },
+    {
+      "symbol": "WLD-USD",
+      "role": "working",
+      "notionalUsd": 2.2,
+      "peakNotionalUsd": 2.2,
+      "costBasisUsd": 2.2,
+      "markUsd": 2.14
+    },
+    {
+      "symbol": "SEI-USD",
+      "role": "working",
+      "notionalUsd": 2.0,
+      "peakNotionalUsd": 2.0,
+      "costBasisUsd": 2.0,
+      "markUsd": 1.96
+    }
+  ],
+  "quotes": [
+    { "symbol": "NEAR-USD", "bid": 5.04, "ask": 5.06, "mark": 5.05, "sessionOpen": 5.2, "priorMark": 5.12, "mark15m": 4.95 },
+    { "symbol": "FIL-USD", "bid": 4.1, "ask": 4.14, "mark": 4.12, "mark15m": 4.0 },
+    { "symbol": "CHIP-USD", "bid": 0.108, "ask": 0.109, "mark": 0.1085, "mark15m": 0.106 },
+    { "symbol": "WLD-USD", "bid": 0.79, "ask": 0.794, "mark": 0.792, "priorMark": 0.81, "mark15m": 0.77 },
+    { "symbol": "SEI-USD", "bid": 0.14, "ask": 0.141, "mark": 0.1405, "priorMark": 0.145, "mark15m": 0.136 }
+  ],
+  "troughs": [],
+  "day": {
+    "date": "2026-09-18",
+    "newWorkingEntries": 2,
+    "realizedPnlUsd": null,
+    "losingWorkingRoundTrips": 0
+  }
+}

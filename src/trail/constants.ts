@@ -70,6 +70,20 @@ export const SURF_LEARN = {
 
 export const DEFAULT_GATE_MODE = "DIVIDEND_15M" as const;
 
+/** Red-day 2-of-3 window. Whispers stay Wild West quarantine until book/tape confirms. */
+export const RED_DAY = {
+  id: "RED_DAY",
+  windowMinutes: 30,
+  nearVsSessionOpen: -0.02,
+  workingVsCost: -0.015,
+  minWorkingDownSeats: 2,
+  minIndependentSources: 2,
+} as const;
+
+export const WHISPER_THEMES = ["red_day", "massive_up", "token_specific"] as const;
+export const WHISPER_ROUTES = ["exit_working", "hold_banks", "buy_trough"] as const;
+export const WHISPER_STATUSES = ["quarantine", "confirmed", "expired"] as const;
+
 export const TRAIL_HORIZON_DEFAULT = "15m" as const;
 
 export const FOLLOW_PATH_SOURCES = [
