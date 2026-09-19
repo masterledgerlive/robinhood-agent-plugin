@@ -74,6 +74,7 @@ describe("SURF_ACT next move", () => {
     assert.deepEqual([...SURF_ACT.accumulateOrder], ["park_to_near", "park_to_chip"]);
     assert.deepEqual([...SURF_ACT.trickOutPreference], ["trick_out_at_peak"]);
     assert.deepEqual([...SURF_ACT.secondWavePreference], ["second_wave_reentry"]);
+    assert.deepEqual([...SURF_ACT.greenOnlyPreference], ["park_green_only"]);
     assert.deepEqual([...SURF_ACT.enterPreference], [
       "trough_bounce_15m",
       "mean_revert_15m",

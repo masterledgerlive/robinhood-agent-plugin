@@ -104,12 +104,17 @@ export function formatTrailView(input: {
   const redDayLines = !red
     ? ["  quiet"]
     : [
-        `  status ${red.status}  legs whisper=${red.legs.whisper} book=${red.legs.book} tape=${red.legs.tape}`,
+        `  status ${red.status}  phase ${red.phase}  legs whisper=${red.legs.whisper} book=${red.legs.book} tape=${red.legs.tape}${red.cleared ? "  CLEARED" : ""}`,
         ...red.reasons.map((r) => `  ${singleLine(r)}`),
         red.recommendations.exitWorkingToDust.length === 0
           ? "  exit_working_to_dust  none (never flatten banks)"
           : `  exit_working_to_dust  ${red.recommendations.exitWorkingToDust
               .map((s) => `${s.symbol} leave $${s.leaveDustUsd.toFixed(2)}`)
+              .join(", ")}`,
+        red.recommendations.parkGreenOnly.length === 0
+          ? "  park_green_only  none still green vs open"
+          : `  park_green_only  ${red.recommendations.parkGreenOnly
+              .map((g) => `${g.symbol} +${(g.climbFromOpen * 100).toFixed(2)}%`)
               .join(", ")}`,
         red.recommendations.buyTrough.length === 0
           ? "  buy_trough  none"
@@ -223,10 +228,12 @@ export function watchToMachineLog(
     },
     human:
       watch.redDay.status === "fired"
-        ? "RED_DAY fired. Recommend exit working to dust + staged buy_trough. Watcher did not place."
-        : watch.status === "quiet"
-          ? "Quiet live book. Wave triggers armed from tape. SURF_LEARN ranks updated. No place. Agents optional."
-          : "Alert from wave math and/or gate-clear tricks. Agents optional — cron already knows WHERE/WHEN. No place.",
+        ? `RED_DAY ${watch.redDay.phase}. Exit working → green-only until bottoms → agentless re-enter. Watcher did not place.`
+        : watch.redDay.active
+          ? `RED_DAY ${watch.redDay.phase}. Green-only shelter / wait bottoms. Agents optional. No place.`
+          : watch.status === "quiet"
+            ? "Quiet live book. Wave triggers armed from tape. SURF_LEARN ranks updated. No place. Agents optional."
+            : "Alert from wave math and/or gate-clear tricks. Agents optional — cron already knows WHERE/WHEN. No place.",
   };
   return entry;
 }

@@ -99,13 +99,40 @@ export type RedDayBuyTrough = {
   reason: string;
 };
 
+/** Green-only shelter while RED_DAY active — still green vs session open. */
+export type RedDayGreenPark = {
+  symbol: string;
+  climbFromOpen: number;
+  reason: string;
+};
+
+/**
+ * Lesson phases (agents optional — cron prints WHERE/WHEN):
+ * defend → exit red working to dust
+ * green_shelter → park into green-only until bottoms
+ * wait_bottoms → hold green; stage troughs
+ * reenter → trough reclaim on staged / green names (agentless recommend)
+ * cleared → NEAR reclaimed session open (or Game clear)
+ */
+export type RedDayPhase =
+  | "quiet"
+  | "defend"
+  | "green_shelter"
+  | "wait_bottoms"
+  | "reenter"
+  | "cleared";
+
 export type RedDayResult = {
   status: "quiet" | "armed" | "fired";
+  phase: RedDayPhase;
   reasons: string[];
   legs: RedDayLeg;
   active: boolean;
+  /** NEAR reclaimed session open — clear RED_DAY_ACTIVE. */
+  cleared: boolean;
   recommendations: {
     exitWorkingToDust: RedDayExitSeat[];
+    parkGreenOnly: RedDayGreenPark[];
     buyTrough: RedDayBuyTrough[];
   };
   whispers: WhisperCard[];
@@ -217,6 +244,7 @@ export type NextMoveAction =
   | "accumulate"
   | "enter"
   | "red_day_exit"
+  | "green_only_park"
   | "trick_out"
   | "second_wave";
 
@@ -239,6 +267,7 @@ export type TriggerAction =
   | "hold_dust"
   | "park_to_near"
   | "park_to_chip"
+  | "park_green_only"
   | "enter_trough"
   | "enter_mean_revert"
   | "enter_momentum"

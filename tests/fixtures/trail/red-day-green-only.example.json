@@ -1,0 +1,65 @@
+{
+  "example": true,
+  "$comment": "EXAMPLE — lesson 2026-09-19: everything red except ZEC green-only. Book+tape fire without whispers. Not live fills.",
+  "asOf": "2026-09-19T06:25:00.000Z",
+  "account": {
+    "rhsAccountNumber": "813839826",
+    "agenticAllowed": true
+  },
+  "mode": "DIVIDEND_15M",
+  "equityUsd": 20,
+  "buyingPowerUsd": 1.8,
+  "sleeves": [
+    {
+      "symbol": "NEAR-USD",
+      "role": "bank",
+      "notionalUsd": 13.7,
+      "peakNotionalUsd": 13.7
+    },
+    {
+      "symbol": "CHIP-USD",
+      "role": "bank",
+      "notionalUsd": 2.0,
+      "peakNotionalUsd": 2.0
+    },
+    {
+      "symbol": "WLD-USD",
+      "role": "working",
+      "notionalUsd": 2.0,
+      "peakNotionalUsd": 2.0,
+      "costBasisUsd": 2.05,
+      "markUsd": 1.97
+    },
+    {
+      "symbol": "SEI-USD",
+      "role": "working",
+      "notionalUsd": 0.09,
+      "peakNotionalUsd": 2.0,
+      "costBasisUsd": 2.0,
+      "markUsd": 0.084
+    },
+    {
+      "symbol": "ENA-USD",
+      "role": "working",
+      "notionalUsd": 0.1,
+      "peakNotionalUsd": 0.12,
+      "costBasisUsd": 0.12,
+      "markUsd": 0.104
+    }
+  ],
+  "quotes": [
+    { "symbol": "NEAR-USD", "bid": 3.62, "ask": 3.69, "mark": 3.65, "sessionOpen": 3.76, "priorMark": 3.7, "mark15m": 3.6 },
+    { "symbol": "CHIP-USD", "bid": 0.0445, "ask": 0.0454, "mark": 0.045, "sessionOpen": 0.0469, "mark15m": 0.044 },
+    { "symbol": "WLD-USD", "bid": 0.413, "ask": 0.421, "mark": 0.417, "sessionOpen": 0.429, "priorMark": 0.42, "mark15m": 0.41 },
+    { "symbol": "SEI-USD", "bid": 0.0471, "ask": 0.048, "mark": 0.0476, "sessionOpen": 0.0485, "priorMark": 0.048, "mark15m": 0.046 },
+    { "symbol": "ENA-USD", "bid": 0.174, "ask": 0.177, "mark": 0.176, "sessionOpen": 0.183, "priorMark": 0.18, "mark15m": 0.172 },
+    { "symbol": "ZEC-USD", "bid": 1536, "ask": 1567, "mark": 1552, "sessionOpen": 1533, "priorMark": 1540, "mark15m": 1555 }
+  ],
+  "troughs": [],
+  "day": {
+    "date": "2026-09-19",
+    "newWorkingEntries": 3,
+    "realizedPnlUsd": null,
+    "losingWorkingRoundTrips": 0
+  }
+}

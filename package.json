@@ -1,6 +1,6 @@
 {
   "name": "@masterledgerlive/robinhood-agent-plugin",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "MIT Cursor/agent plugin for Robinhood Agentic Trading MCP: capability discovery, risk rails, paper vs live, plain-text MACHINE LOG, Agentic trail/surf watcher.",
   "license": "MIT",
   "type": "module",

@@ -28,11 +28,13 @@ reclaiming  = mark15m > mark  OR  mark > priorMark  OR  trough reclaim phase ∈
 
 ## SURF_ACT order
 
-1. RED_DAY exit  
-2. Peak trick-out  
-3. **Second-wave reentry**  
-4. Park → NEAR/CHIP  
-5. Enter trough → mean-revert → momentum  
+1. RED_DAY exit (defend)  
+2. RED_DAY green-only shelter  
+3. RED_DAY trough re-enter (bottoms)  
+4. Peak trick-out  
+5. **Second-wave reentry**  
+6. Park → NEAR/CHIP  
+7. Enter trough → mean-revert → momentum  
 
 ## Agentic usage credits (ML / communication refinement)
 

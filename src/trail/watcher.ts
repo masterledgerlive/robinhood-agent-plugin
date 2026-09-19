@@ -2,19 +2,21 @@ import { SURF_LEARN } from "./constants.js";
 import { evaluateAll } from "../tricks/catalog.js";
 import { baseSymbol, expectancyHaltActive, isAgenticAccount, softHaltActive } from "./gates.js";
 import type { SuccessLedger } from "./ledger.js";
-import { redDayTrigger } from "./red-day.js";
+import { redDayAllowsTroughReentry, redDayTrigger } from "./red-day.js";
 import { recommendNextMove } from "./surf-act.js";
 import { runSurfLearn } from "./surf-learn.js";
 import { armTokenTriggers } from "./triggers.js";
 import type { PortfolioSnapshot, WatchCandidate, WatchResult, WhisperCard } from "./types.js";
 
-const CHASE_TRICKS = new Set(["trough_bounce_15m", "momentum_15m", "mean_revert_15m"]);
+/** Chase into falling knives — blocked while RED_DAY active. Trough re-entry is gated separately. */
+const CHASE_TRICKS = new Set(["momentum_15m", "mean_revert_15m"]);
 
 /**
  * Deterministic 15m evaluate.
  * Live quiet is the default. SURF_LEARN paper what-ifs run every cycle.
  * Wave triggers arm every token from the tape — agents optional.
- * Red-day / whisper layer recommends only — never places.
+ * Lesson 2026-09-19: RED_DAY → exit → green-only → bottoms → agentless trough re-enter.
+ * Never places.
  */
 export function watch15m(
   snapshot: PortfolioSnapshot,
@@ -38,6 +40,23 @@ export function watch15m(
     if (!ev.eligible) continue;
     if (ev.trick_id === "momentum_15m" && !momentumLiveUnlocked(ledger)) continue;
     if (redDay.active && CHASE_TRICKS.has(ev.trick_id)) continue;
+    if (
+      redDay.active &&
+      ev.trick_id === "trough_bounce_15m" &&
+      ev.symbol !== undefined &&
+      !redDayAllowsTroughReentry(redDay, ev.symbol)
+    ) {
+      continue;
+    }
+    // While defending / green-sheltering, only allow green-only park + exits (via redDay), not fresh chase seats.
+    if (
+      redDay.active &&
+      (redDay.phase === "defend" || redDay.phase === "green_shelter") &&
+      ev.trick_id === "trough_bounce_15m" &&
+      !redDayAllowsTroughReentry(redDay, ev.symbol ?? "")
+    ) {
+      continue;
+    }
     const path = ledger?.matchPath(ev.trick_id, ev.symbol);
     const candidate: WatchCandidate = {
       trick_id: ev.trick_id,
@@ -56,13 +75,13 @@ export function watch15m(
   const nextMove = recommendNextMove({ candidates, learn, redDay });
   const triggers = armTokenTriggers(snapshot, inbox, { redDay, candidates });
 
-  // Wave plan always prints. Only working TP/stop/park/red-day *fires* wake WATCH.
-  // Candidate wave arms stay visible without flipping quiet → alert (agents optional).
+  // Wave plan always prints. Working TP/stop/park/red-day/green-only fires wake WATCH.
   const waveFire = triggers.tokens.some(
     (t) =>
       t.state === "fired" &&
       (t.role === "working" ||
         t.where === "exit_to_dust" ||
+        t.where === "park_green_only" ||
         t.where === "trick_out_at_peak" ||
         t.when.parkEligible),
   );

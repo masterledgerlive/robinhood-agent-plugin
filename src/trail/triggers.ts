@@ -89,9 +89,19 @@ function whereFromWave(
   wave: WaveState | null,
   role: TriggerRole,
   cascadeRoute: string | null,
-  redDayActive: boolean,
+  redDay: RedDayResult | undefined,
 ): TriggerAction {
+  const redDayActive = redDay?.active === true;
   if (redDayActive && role === "working") return "exit_to_dust";
+  if (
+    redDayActive &&
+    (role === "candidate" || role === "whisper") &&
+    (redDay?.phase === "green_shelter" || redDay?.phase === "defend") &&
+    (redDay?.recommendations.parkGreenOnly.length ?? 0) > 0
+  ) {
+    // Specific symbol check happens in armCandidate; default hint for green shelter.
+    if (cascadeRoute !== "buy_trough") return "park_green_only";
+  }
   if (cascadeRoute === "exit_working" && role === "working") return "exit_to_dust";
   if (cascadeRoute === "buy_trough" && (role === "candidate" || role === "whisper")) {
     return "buy_trough";
@@ -100,6 +110,9 @@ function whereFromWave(
   if (role === "bank") return "hold_bank";
   if (role === "dust") return "hold_dust";
   if (!wave) return "none";
+  if (redDayActive && (wave.kind === "momentum_up" || wave.kind === "mean_revert_dip")) {
+    return "none"; // no chase into red knives
+  }
   const trick = waveToTrickId(wave.kind);
   if (trick === "trough_bounce_15m") return "enter_trough";
   if (trick === "mean_revert_15m") return "enter_mean_revert";
@@ -176,8 +189,10 @@ function armWorking(
 
   let where: TriggerAction = parkEligible
     ? "park_to_near"
-    : whereFromWave(wave, "working", cascade.route, redDay?.active === true);
-  if (peak?.mode === "trick_out" || peak?.mode === "crash_start") {
+    : whereFromWave(wave, "working", cascade.route, redDay);
+  if (redDay?.active && take > 0) {
+    where = "exit_to_dust";
+  } else if (peak?.mode === "trick_out" || peak?.mode === "crash_start") {
     where = "trick_out_at_peak";
   } else if (peak?.mode === "second_wave") {
     // Already in the seat — ride reclaim toward higherPeak (do not re-enter).
@@ -268,24 +283,45 @@ function armCandidate(
   const reclaim = trough?.troughMark;
   const blocked = isFilDisplayOnly(symbol);
   const peak = peakOf(snapshot, symbol, eq);
-  const armed =
-    !blocked &&
-    ((wave?.edgeClears === true && wave.spreadOk) ||
-      liveHit !== undefined ||
-      peak?.mode === "second_wave" ||
-      (cascade.route === "buy_trough" && cascade.score >= 0.5));
-  const fired =
-    liveHit !== undefined ||
-    (wave?.kind === "trough_reclaim" && wave.edgeClears && wave.spreadOk) ||
-    peak?.mode === "second_wave";
-  let where = whereFromWave(wave, role, cascade.route, redDay?.active === true);
-  if (peak?.mode === "second_wave") where = "second_wave_reentry";
+  let where = whereFromWave(wave, role, cascade.route, redDay);
+  const greenHit = redDay?.recommendations.parkGreenOnly.find(
+    (g) => baseSymbol(g.symbol) === baseSymbol(symbol),
+  );
+  if (
+    redDay?.active &&
+    greenHit &&
+    (redDay.phase === "green_shelter" || redDay.phase === "defend" || redDay.phase === "wait_bottoms")
+  ) {
+    where = "park_green_only";
+  } else if (peak?.mode === "second_wave") {
+    where = "second_wave_reentry";
+  }
 
   let equation = wave?.equation ?? `candidate ${baseSymbol(symbol)}: no wave geometry`;
   if (reclaim !== undefined) {
     equation += `; trough_reclaim>${reclaim.toFixed(6)}`;
   }
   if (liveHit) equation += `; live_trick=${liveHit.trick_id}`;
+  if (greenHit) {
+    equation += `; green_only +${(greenHit.climbFromOpen * 100).toFixed(2)}% vs open`;
+  }
+
+  const greenArmed =
+    redDay?.active === true &&
+    greenHit !== undefined &&
+    (redDay.phase === "green_shelter" || redDay.phase === "defend");
+  const armed =
+    !blocked &&
+    (greenArmed ||
+      (wave?.edgeClears === true && wave.spreadOk) ||
+      liveHit !== undefined ||
+      peak?.mode === "second_wave" ||
+      (cascade.route === "buy_trough" && cascade.score >= 0.5));
+  const fired =
+    liveHit !== undefined ||
+    greenArmed ||
+    (wave?.kind === "trough_reclaim" && wave.edgeClears && wave.spreadOk) ||
+    peak?.mode === "second_wave";
 
   const brokerAlerts: TriggerBrokerAlertSpec[] = [];
   if (reclaim !== undefined && Number.isFinite(reclaim)) {
@@ -388,7 +424,7 @@ export function armTokenTriggers(
   const next = pickWaveNext(
     tokens,
     workingSeats(snapshot).length > 0,
-    redDay?.active === true,
+    redDay,
     primed?.symbol,
   );
 
@@ -406,9 +442,10 @@ export function armTokenTriggers(
 function pickWaveNext(
   tokens: TokenTrigger[],
   hasWorking: boolean,
-  redDayActive: boolean,
+  redDay: RedDayResult | undefined,
   primedSymbol?: string,
 ): TokenTriggerPlan["next"] {
+  const redDayActive = redDay?.active === true;
   if (redDayActive) {
     const exit = tokens.find((t) => t.where === "exit_to_dust" && t.role === "working");
     if (exit) {
@@ -417,6 +454,29 @@ function pickWaveNext(
         where: exit.where,
         reason: "Wave/RED_DAY: sleeve working to dust (leave dust). No agent required.",
       };
+    }
+    const green = tokens.find(
+      (t) => t.where === "park_green_only" && (t.state === "fired" || t.state === "armed"),
+    );
+    if (green && (redDay?.phase === "green_shelter" || redDay?.phase === "defend" || redDay?.phase === "wait_bottoms")) {
+      return {
+        symbol: green.symbol,
+        where: green.where,
+        reason:
+          "Everything red — green-only shelter until bottoms. Agents optional. No place.",
+      };
+    }
+    if (redDay?.phase === "reenter") {
+      const trough = tokens.find(
+        (t) => t.where === "enter_trough" && (t.state === "fired" || t.state === "armed"),
+      );
+      if (trough) {
+        return {
+          symbol: trough.symbol,
+          where: trough.where,
+          reason: "Bottoms found — agentless trough re-entry. No agent required.",
+        };
+      }
     }
   }
   const trickOut = tokens.find(

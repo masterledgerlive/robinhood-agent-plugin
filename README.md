@@ -116,7 +116,7 @@ Quiet **live** is the default. **SURF_LEARN** still runs every cycle ($2 paper w
 
 **Wave autonomy:** every 15m, pure wave functions + `AGENTIC_MOVE_EQ` arm per-token triggers (TP/stop/park/entry) from the tape. Cascade/whispers overlay routes. **Agents are optional** — cron still prints `WAVES` / `TRIGGERS` when Cursor is silent. See [docs/AGENTIC_MOVE_EQ.md](docs/AGENTIC_MOVE_EQ.md).
 
-See [docs/DIVIDEND_15M_SURF.md](docs/DIVIDEND_15M_SURF.md). Red-day / agentic whispers are an early-warning layer: [docs/RED_DAY_WHISPER.md](docs/RED_DAY_WHISPER.md). Unverified chatter stays Wild West **quarantine**. On `RED_DAY fired` the watcher recommends exit-to-dust + staged troughs and still **does not place**.
+See [docs/DIVIDEND_15M_SURF.md](docs/DIVIDEND_15M_SURF.md). Red-day / green-only / agentic whispers: [docs/RED_DAY_WHISPER.md](docs/RED_DAY_WHISPER.md). Unverified chatter stays Wild West **quarantine**. On `RED_DAY fired` the watcher recommends exit-to-dust → **green-only shelter** until bottoms → agentless trough re-enter, and still **does not place**.
 
 Banks stay **NEAR → FIL (display-only until MCP unlock) → CHIP**. Example Agentic rhs `813839826` (not a secret).
 

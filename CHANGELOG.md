@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0
+
+- **Lesson 2026-09-19:** when everything goes red, fire on book+tape (session-open majority if `mark15m` missing), exit working to dust, **green-only shelter** until bottoms, then **agentless trough re-entry**. Clear when NEAR reclaims open.
+- `park_green_only` trick + RED_DAY phases (`defend` → `green_shelter` → `wait_bottoms` → `reenter` → `cleared`).
+- Soft-halt only chase (`momentum` / `mean_revert`) during RED_DAY — trough bottoms are allowed again.
+- SURF_ACT / TRAIL VIEW print green-only parks. Agents optional; watcher still never places.
+
 ## 1.3.0
 
 - Peak ride + primed rotate + **second-wave** reclaim (`AGENTIC_MOVE_EQ_v3`): absolute local peak, stall/pullback trick-out, first-crash, then ride to `higherPeak`.
