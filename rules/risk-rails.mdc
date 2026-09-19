@@ -21,4 +21,4 @@ Write a plain-text MACHINE LOG for every money-related tool call:
 
 INTENT → TOOL → ARGS (redacted) → RESULT → HUMAN LINE
 
-LOW_CAP_SLOW trail: banks NEAR → FIL (display-only) → CHIP; never flatten. Cron the 15m watcher. Step in on alert or Game authorize only. Do not spend a chat turn on a quiet book.
+DIVIDEND_15M + SURF_LEARN default. Banks NEAR → FIL (display-only) → CHIP; never flatten. Cron the 15m watcher (learn every cycle). Live micros need BP ≥ $2. Step in on alert or Game authorize only. Do not spend a chat turn on a quiet live book.

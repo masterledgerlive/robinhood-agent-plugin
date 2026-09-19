@@ -1,11 +1,10 @@
-import { LOW_CAP_SLOW } from "../trail/constants.js";
-import { isAgenticAccount, refuseNonAgentic, softHaltActive } from "../trail/gates.js";
+import { gateProfile, isAgenticAccount, refuseNonAgentic, softHaltActive } from "../trail/gates.js";
 import type { TrickEvaluation } from "../trail/types.js";
 import type { Trick } from "./types.js";
 
 export const softHalt: Trick = {
   id: "soft_halt",
-  whenItMayFire: "Protective no-new-risk when broker day realized ≤ −$1.",
+  whenItMayFire: "Protective no-new-risk when broker day realized hits the active profile soft halt.",
   paramsSchema: {
     type: "object",
     additionalProperties: false,
@@ -18,15 +17,16 @@ export const softHalt: Trick = {
     if (snapshot.day.realizedPnlUsd === null) {
       return { eligible: false, reason: "Day realized unknown — will not invent PnL for soft_halt" };
     }
+    const profile = gateProfile(snapshot);
     if (!softHaltActive(snapshot)) {
       return {
         eligible: false,
-        reason: `Day realized ${snapshot.day.realizedPnlUsd} is above ${LOW_CAP_SLOW.softHaltRealizedUsd}`,
+        reason: `Day realized ${snapshot.day.realizedPnlUsd} is above ${profile.softHaltRealizedUsd}`,
       };
     }
     return {
       eligible: true,
-      reason: `soft_halt: broker day realized ${snapshot.day.realizedPnlUsd} ≤ ${LOW_CAP_SLOW.softHaltRealizedUsd}`,
+      reason: `soft_halt: broker day realized ${snapshot.day.realizedPnlUsd} ≤ ${profile.softHaltRealizedUsd}`,
     };
   },
 };

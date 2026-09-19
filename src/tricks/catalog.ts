@@ -1,6 +1,9 @@
 import { bankSleeveAuthorized } from "./bank-sleeve-authorized.js";
 import { deconcentrateHighNotional } from "./deconcentrate-high-notional.js";
 import { expectancyHalt } from "./expectancy-halt.js";
+import { holdBank } from "./hold-bank.js";
+import { meanRevert15m } from "./mean-revert-15m.js";
+import { momentum15m } from "./momentum-15m.js";
 import { parkToChip } from "./park-to-chip.js";
 import { parkToNear } from "./park-to-near.js";
 import { softHalt } from "./soft-halt.js";
@@ -10,6 +13,9 @@ import type { PortfolioSnapshot, TrickEvaluation } from "../trail/types.js";
 
 export const TRICK_CATALOG: readonly Trick[] = [
   troughBounce15m,
+  momentum15m,
+  meanRevert15m,
+  holdBank,
   bankSleeveAuthorized,
   deconcentrateHighNotional,
   parkToNear,
@@ -44,6 +50,9 @@ export {
   bankSleeveAuthorized,
   deconcentrateHighNotional,
   expectancyHalt,
+  holdBank,
+  meanRevert15m,
+  momentum15m,
   parkToChip,
   parkToNear,
   softHalt,

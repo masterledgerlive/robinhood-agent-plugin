@@ -1,8 +1,8 @@
-import { LOW_CAP_SLOW } from "../trail/constants.js";
 import {
   baseSymbol,
   edgeClearsRt,
   findQuote,
+  gateProfile,
   isAgenticAccount,
   isBankSymbol,
   refuseNewWorkingEntry,
@@ -18,7 +18,7 @@ import type { Trick } from "./types.js";
 export const troughBounce15m: Trick = {
   id: "trough_bounce_15m",
   whenItMayFire:
-    "Mark reclaims a 15–30m trough, spread ≤0.8%, planned bounce edge ≥2× RT, seats/day open, no chase, no halt.",
+    "Mark reclaims a 15–30m trough, spread/edge clear the active gate profile, seats/day open, no chase, no halt.",
   paramsSchema: {
     type: "object",
     additionalProperties: false,
@@ -35,13 +35,14 @@ export const troughBounce15m: Trick = {
     const blocked = refuseNewWorkingEntry(snapshot);
     if (blocked) return { eligible: false, reason: blocked };
 
+    const profile = gateProfile(snapshot);
     const occupied = new Set(workingSeats(snapshot).map((s) => baseSymbol(s.symbol)));
     const hits: string[] = [];
     let lastFail = "No 15–30m trough+bounce candidate cleared spread/edge/no-chase gates";
 
     for (const trough of snapshot.troughs) {
-      if (!troughWindowOk(trough)) {
-        lastFail = `${trough.symbol}: trough window must be ${LOW_CAP_SLOW.troughWindowMinMinutes}–${LOW_CAP_SLOW.troughWindowMaxMinutes}m`;
+      if (!troughWindowOk(trough, snapshot)) {
+        lastFail = `${trough.symbol}: trough window must be ${profile.troughWindowMinMinutes}–${profile.troughWindowMaxMinutes}m`;
         continue;
       }
       if (isBankSymbol(trough.symbol)) {
@@ -57,11 +58,11 @@ export const troughBounce15m: Trick = {
         lastFail = `${trough.symbol}: no quote`;
         continue;
       }
-      if (!spreadOk(quote)) {
-        lastFail = `${trough.symbol}: spread > ${LOW_CAP_SLOW.maxSpread * 100}% hard`;
+      if (!spreadOk(quote, snapshot)) {
+        lastFail = `${trough.symbol}: spread > ${profile.maxSpread * 100}% hard`;
         continue;
       }
-      const bounce = troughBounceEdge(trough, quote.mark);
+      const bounce = troughBounceEdge(trough, quote.mark, snapshot);
       if (!bounce.reclaim) {
         lastFail = `${trough.symbol}: mark has not reclaimed trough`;
         continue;
@@ -74,8 +75,8 @@ export const troughBounce15m: Trick = {
         lastFail = `${trough.symbol}: missing recentHigh; will not invent bounce edge`;
         continue;
       }
-      if (!edgeClearsRt(bounce.edge, quote)) {
-        lastFail = `${trough.symbol}: bounce edge < 2× RT spread`;
+      if (!edgeClearsRt(bounce.edge, quote, snapshot)) {
+        lastFail = `${trough.symbol}: bounce edge < ${profile.minEdgeMultipleOfRtSpread}× RT spread`;
         continue;
       }
       hits.push(trough.symbol);

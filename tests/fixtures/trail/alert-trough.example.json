@@ -32,7 +32,7 @@
     { "symbol": "NEAR-USD", "bid": 5.1, "ask": 5.14, "mark": 5.12 },
     { "symbol": "FIL-USD", "bid": 4.2, "ask": 4.28, "mark": 4.24 },
     { "symbol": "CHIP-USD", "bid": 0.11, "ask": 0.111, "mark": 0.1105 },
-    { "symbol": "WLD-USD", "bid": 0.802, "ask": 0.806, "mark": 0.804 }
+    { "symbol": "WLD-USD", "bid": 0.802, "ask": 0.806, "mark": 0.804, "priorMark": 0.8, "mark15m": 0.818 }
   ],
   "troughs": [
     {

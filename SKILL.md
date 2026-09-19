@@ -135,9 +135,9 @@ If Lane A tools are missing, log that fact and run Lane B only.
 
 ### 8. Trail watch (alerts only)
 
-The 15m watcher in `src/trail/` is deterministic. Cron it. Do not start a chat turn to re-check an unchanged book.
+The 15m watcher in `src/trail/` is deterministic. Cron it. SURF_LEARN paper what-ifs run every cycle; do not start a chat turn to re-check an unchanged **live** book.
 
-Step in only when `WATCH   alert` lists a gate-clear trick (`trough_bounce_15m`, Game-authorized sleeve/deconcentrate/park, or a halt) or Game asks. Then follow review-before-place and tag the MACHINE LOG with `trick_id` + `path_id`.
+Step in only when `WATCH   alert` lists a gate-clear trick (`trough_bounce_15m`, unlocked `momentum_15m`, Game-authorized sleeve/deconcentrate/park, or a halt) or Game asks. Live micros need BP ≥ $2. Then follow review-before-place and tag the MACHINE LOG with `trick_id` + `path_id`.
 
 See [docs/AGENTIC_TRAIL_MODEL.md](docs/AGENTIC_TRAIL_MODEL.md).
 

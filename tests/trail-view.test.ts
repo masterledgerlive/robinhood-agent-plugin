@@ -44,6 +44,8 @@ describe("trail machine view", () => {
     const view = formatTrailView({ snapshot, ledger, watch: watch15m(snapshot, ledger) });
     assert.match(view, /^WATCH   quiet/m);
     assert.match(view, /CANDIDATES\n  none/);
+    assert.match(view, /^WHAT-IF TOP/m);
+    assert.match(view, /surf:/);
     assert.match(view, /LAST ALERTS\n  none/);
   });
 });

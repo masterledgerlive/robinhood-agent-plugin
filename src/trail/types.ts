@@ -1,4 +1,6 @@
-import type { FOLLOW_PATH_SOURCES, FOLLOW_PATH_STATUSES, TrickId } from "./constants.js";
+import type { FOLLOW_PATH_SOURCES, FOLLOW_PATH_STATUSES, GateMode, TrickId } from "./constants.js";
+
+export type { GateMode };
 
 export type FollowPathSource = (typeof FOLLOW_PATH_SOURCES)[number];
 export type FollowPathStatus = (typeof FOLLOW_PATH_STATUSES)[number];
@@ -12,6 +14,13 @@ export type Quote = {
   bid: number;
   ask: number;
   mark: number;
+  /** Observed mark ~15m ago. Omit if unknown — do not invent momentum. */
+  priorMark?: number;
+  /**
+   * Next-15m mark for SURF_LEARN paper what-if only.
+   * Omit if unknown — that surfer is skipped. Never a broker fill.
+   */
+  mark15m?: number;
 };
 
 export type Sleeve = {
@@ -62,8 +71,10 @@ export type PortfolioSnapshot = {
     rhsAccountNumber: string;
     agenticAllowed: boolean;
   };
-  mode: "LOW_CAP_SLOW";
+  mode: GateMode;
   equityUsd?: number;
+  /** Broker buying power. Live micros need ≥ $2. Omit if unknown. */
+  buyingPowerUsd?: number;
   sleeves: Sleeve[];
   quotes: Quote[];
   troughs: TroughWindow[];
@@ -100,6 +111,8 @@ export type LedgerAttempt = {
   realized_pnl: number | null;
   spread_at_entry: number | null;
   outcome: LedgerOutcome;
+  /** paper_surf = SURF_LEARN what-if (no order id). Default live. */
+  kind?: "live" | "paper_surf";
 };
 
 export type TrailAlert = {
@@ -121,12 +134,32 @@ export type WatchCandidate = {
   path_id?: string;
 };
 
+export type WhatIfPath = {
+  path_id: string;
+  trick_id: string;
+  symbol: string;
+  notionalUsd: number;
+  /** Paper mark-to-mark after estimated RT. Not a broker fill. */
+  whatIfPnlUsd: number;
+  spreadAtEntry: number;
+  liveClears: boolean;
+  rank: number;
+};
+
+export type SurfLearnResult = {
+  ran: true;
+  notionalUsd: number;
+  whatIfTop: WhatIfPath[];
+  liveMicroOk: boolean;
+};
+
 export type WatchResult = {
   status: "quiet" | "alert";
   asOf: string;
   halt: { soft: boolean; expectancy: boolean };
   candidates: WatchCandidate[];
   rejectedCount: number;
+  learn: SurfLearnResult;
 };
 
 export type TrickRank = {
