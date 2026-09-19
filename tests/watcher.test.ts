@@ -29,6 +29,7 @@ describe("15m watcher", () => {
     assert.equal(watch.redDay.status, "quiet");
     assert.equal(watch.nextMove.action, "hold");
     assert.equal(watch.nextMove.live, false);
+    assert.equal(watch.brain.injected, true);
   });
 
   it("alerts when trough_bounce_15m clears and attaches a follow-path id", () => {

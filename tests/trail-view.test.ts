@@ -47,6 +47,10 @@ describe("trail machine view", () => {
     assert.match(view, /^NEXT MOVE/m);
     assert.match(view, /CANDIDATES\n  none/);
     assert.match(view, /^WHAT-IF TOP/m);
+    assert.match(view, /^BRAIN \(injected memory\)/m);
+    assert.match(view, /injected=yes/);
+    assert.match(view, /^COST LEARN/m);
+    assert.match(view, /^BRAIN NOTES/m);
     assert.match(view, /^WAVES/m);
     assert.match(view, /^TRIGGERS/m);
     assert.match(view, /^RED_DAY/m);

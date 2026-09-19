@@ -93,6 +93,9 @@ export function runSurfLearn(
       });
 
       if (ledger) {
+        const rt = rtSpread(quote);
+        const oneWayPct = (quoteSpread(quote) * 100).toFixed(3);
+        const rtPct = (rt * 100).toFixed(3);
         ledger.upsertPath({
           path_id,
           source: "github_code",
@@ -112,8 +115,10 @@ export function runSurfLearn(
           order_ids: [],
           realized_pnl: pnl,
           spread_at_entry: quoteSpread(quote),
+          rt_cost: rt,
           outcome: pnl > 0 ? "win" : "loss",
           kind: "paper_surf",
+          notes: `paper $${notionalUsd}; oneWay=${oneWayPct}%; RT=${rtPct}%; pnl=${pnl.toFixed(4)}; after_cost=${pnl > 0 ? "clear" : "underwater"}`,
         });
       }
     }

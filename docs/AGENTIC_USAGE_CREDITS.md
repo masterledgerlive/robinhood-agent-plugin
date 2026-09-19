@@ -7,7 +7,7 @@ Treat **Agentic AI turn credits** and **on-chain / RH token activity** as one re
 1. Wave math runs for **free** (0 credits) every 15m — pure tape.
 2. Agents spend credits only when the math says step in (`WATCH alert`, Game authorize, review-before-place).
 3. Live fills tagged with `trick_id` + `path_id` feed the success ledger.
-4. Ledger expectancy refines which primed tokens and second-wave rides deserve the next credit.
+4. Ledger expectancy + **BRAIN_INJECT transmission-cost notes** refine which primed tokens and second-wave rides deserve the next credit ([BRAIN_INJECT.md](BRAIN_INJECT.md)).
 
 This is how communication and ML get sharper without burning chat on quiet books.
 
