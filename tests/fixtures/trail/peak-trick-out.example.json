@@ -1,0 +1,103 @@
+{
+  "example": true,
+  "$comment": "EXAMPLE — WLD at wave-1 peak trick-out; ENA in second_wave reclaim toward higherPeak. Not live fills.",
+  "asOf": "2026-09-19T04:10:00.000Z",
+  "account": {
+    "rhsAccountNumber": "813839826",
+    "agenticAllowed": true
+  },
+  "mode": "DIVIDEND_15M",
+  "equityUsd": 20.6,
+  "buyingPowerUsd": 3.0,
+  "sleeves": [
+    {
+      "symbol": "NEAR-USD",
+      "role": "bank",
+      "notionalUsd": 14.1,
+      "peakNotionalUsd": 14.1
+    },
+    {
+      "symbol": "CHIP-USD",
+      "role": "bank",
+      "notionalUsd": 2.25,
+      "peakNotionalUsd": 2.25
+    },
+    {
+      "symbol": "WLD-USD",
+      "role": "working",
+      "notionalUsd": 2.04,
+      "peakNotionalUsd": 2.04,
+      "costBasisUsd": 0.42,
+      "markUsd": 0.43
+    }
+  ],
+  "quotes": [
+    {
+      "symbol": "NEAR-USD",
+      "bid": 3.73,
+      "ask": 3.8,
+      "mark": 3.77,
+      "sessionOpen": 3.75,
+      "sessionHigh": 3.78,
+      "priorMark": 3.76
+    },
+    {
+      "symbol": "CHIP-USD",
+      "bid": 0.046,
+      "ask": 0.047,
+      "mark": 0.0466,
+      "sessionOpen": 0.0469,
+      "sessionHigh": 0.0472
+    },
+    {
+      "symbol": "WLD-USD",
+      "bid": 0.426,
+      "ask": 0.434,
+      "mark": 0.43,
+      "sessionOpen": 0.42,
+      "sessionHigh": 0.432,
+      "priorMark": 0.431,
+      "mark15m": 0.429
+    },
+    {
+      "symbol": "ENA-USD",
+      "bid": 0.182,
+      "ask": 0.184,
+      "mark": 0.183,
+      "sessionOpen": 0.175,
+      "sessionHigh": 0.2,
+      "priorMark": 0.178,
+      "mark15m": 0.19
+    },
+    {
+      "symbol": "SEI-USD",
+      "bid": 0.048,
+      "ask": 0.049,
+      "mark": 0.0485,
+      "sessionOpen": 0.0485,
+      "sessionHigh": 0.049
+    }
+  ],
+  "troughs": [
+    {
+      "symbol": "WLD-USD",
+      "troughMark": 0.4,
+      "troughAt": "2026-09-19T03:40:00.000Z",
+      "windowMinutes": 20,
+      "recentHigh": 0.432
+    },
+    {
+      "symbol": "ENA-USD",
+      "troughMark": 0.17,
+      "troughAt": "2026-09-19T03:50:00.000Z",
+      "windowMinutes": 18,
+      "recentHigh": 0.2
+    }
+  ],
+  "day": {
+    "date": "2026-09-19",
+    "newWorkingEntries": 1,
+    "realizedPnlUsd": null,
+    "losingWorkingRoundTrips": 0
+  }
+}

@@ -39,6 +39,8 @@ describe("trick catalog", () => {
       "deconcentrate_high_notional",
       "park_to_near",
       "park_to_chip",
+      "trick_out_at_peak",
+      "second_wave_reentry",
       "expectancy_halt",
       "soft_halt",
     ]);
