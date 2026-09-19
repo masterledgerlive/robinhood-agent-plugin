@@ -6,8 +6,10 @@ import { meanRevert15m } from "./mean-revert-15m.js";
 import { momentum15m } from "./momentum-15m.js";
 import { parkToChip } from "./park-to-chip.js";
 import { parkToNear } from "./park-to-near.js";
+import { secondWaveReentry } from "./second-wave-reentry.js";
 import { softHalt } from "./soft-halt.js";
 import { troughBounce15m } from "./trough-bounce-15m.js";
+import { trickOutAtPeak } from "./trick-out-at-peak.js";
 import type { Trick } from "./types.js";
 import type { PortfolioSnapshot, TrickEvaluation } from "../trail/types.js";
 
@@ -20,6 +22,8 @@ export const TRICK_CATALOG: readonly Trick[] = [
   deconcentrateHighNotional,
   parkToNear,
   parkToChip,
+  trickOutAtPeak,
+  secondWaveReentry,
   expectancyHalt,
   softHalt,
 ];
@@ -55,6 +59,8 @@ export {
   momentum15m,
   parkToChip,
   parkToNear,
+  secondWaveReentry,
   softHalt,
   troughBounce15m,
+  trickOutAtPeak,
 };

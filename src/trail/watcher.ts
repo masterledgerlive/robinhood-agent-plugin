@@ -61,7 +61,10 @@ export function watch15m(
   const waveFire = triggers.tokens.some(
     (t) =>
       t.state === "fired" &&
-      (t.role === "working" || t.where === "exit_to_dust" || t.when.parkEligible),
+      (t.role === "working" ||
+        t.where === "exit_to_dust" ||
+        t.where === "trick_out_at_peak" ||
+        t.when.parkEligible),
   );
 
   const liveQuiet = candidates.length === 0 && !redDay.active && !waveFire;

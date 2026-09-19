@@ -79,6 +79,10 @@ export const SURF_ACT = {
   id: "SURF_ACT",
   preferNewEntriesPerSlot: 1,
   accumulateOrder: ["park_to_near", "park_to_chip"] as const,
+  /** Peak trick-out before new seats when uphill wave arms. */
+  trickOutPreference: ["trick_out_at_peak"] as const,
+  /** After crash reclaim: second-wave ride to higher peak. */
+  secondWavePreference: ["second_wave_reentry"] as const,
   enterPreference: ["trough_bounce_15m", "mean_revert_15m", "momentum_15m"] as const,
 } as const;
 
@@ -120,6 +124,8 @@ export const TRICK_IDS = [
   "deconcentrate_high_notional",
   "park_to_near",
   "park_to_chip",
+  "trick_out_at_peak",
+  "second_wave_reentry",
   "expectancy_halt",
   "soft_halt",
 ] as const;

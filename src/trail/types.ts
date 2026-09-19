@@ -23,6 +23,11 @@ export type Quote = {
   mark15m?: number;
   /** Session open mark. Omit if unknown — red-day book leg will not invent it. */
   sessionOpen?: number;
+  /**
+   * Observed local/session high. Omit if unknown — peak math will not invent a high.
+   * Prefer broker/session high when available; else trough.recentHigh or mark.
+   */
+  sessionHigh?: number;
 };
 
 export type Sleeve = {
@@ -207,7 +212,13 @@ export type SurfLearnResult = {
   liveMicroOk: boolean;
 };
 
-export type NextMoveAction = "hold" | "accumulate" | "enter" | "red_day_exit";
+export type NextMoveAction =
+  | "hold"
+  | "accumulate"
+  | "enter"
+  | "red_day_exit"
+  | "trick_out"
+  | "second_wave";
 
 /** Math-only recommendation. Never an order. */
 export type NextMove = {
@@ -232,7 +243,10 @@ export type TriggerAction =
   | "enter_mean_revert"
   | "enter_momentum"
   | "exit_to_dust"
-  | "buy_trough";
+  | "buy_trough"
+  | "trick_out_at_peak"
+  | "ride_peak"
+  | "second_wave_reentry";
 
 /** Broker create_alert shape — recommend only; watcher never writes alerts. */
 export type TriggerBrokerAlertSpec = {
@@ -240,7 +254,7 @@ export type TriggerBrokerAlertSpec = {
   asset_class: "crypto" | "equity";
   condition_type: "price_above" | "price_below";
   threshold: string;
-  purpose: "take_profit" | "stop" | "trough_reclaim";
+  purpose: "take_profit" | "stop" | "trough_reclaim" | "peak_pullback";
 };
 
 export type TokenTrigger = {

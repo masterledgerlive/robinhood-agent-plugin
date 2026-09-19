@@ -11,16 +11,19 @@ import { quoteSpread, rtSpread } from "./gates.js";
 import type { Quote, WhisperCard, WhisperRouteHint } from "./types.js";
 
 /**
- * v1 equation knobs.
+ * v3 equation knobs.
  *
  * take_profit_pct = max(tpFloor, tpSpreadK * one_way_spread)
  * stop_pct        = max(stopFloor, stopSpreadK * one_way_spread)
  * live_edge_ok    = edge >= liveEdgeK * RT_spread   (RT = 2× one-way)
  * park_edge_ok    = edge >= parkEdgeK * RT_spread
  * whisper_score   = min(1, sources/minSources * (1-w) + meanConfidence * w)
+ * higherPeak      = localHigh × (1 + higherPeakExtension)
+ * second_wave     = hardPullback ∧ reclaiming → ride toward higherPeak
+ * credit_discipline: quiet watch = 0 credits; agent step-in only on alert
  */
 export const AGENTIC_MOVE_EQ = {
-  id: "AGENTIC_MOVE_EQ_v1",
+  id: "AGENTIC_MOVE_EQ_v3",
   /** Sleeve take-profit floor (DIVIDEND_15M: 1.2%). */
   takeProfitFloorPct: 0.012,
   /** TP as multiple of one-way spread (DIVIDEND_15M: 1.5×). */
@@ -44,6 +47,37 @@ export const AGENTIC_MOVE_EQ = {
   /** Red-day book legs (shared with RED_DAY). */
   nearVsSessionOpen: RED_DAY.nearVsSessionOpen,
   workingVsCost: RED_DAY.workingVsCost,
+  /**
+   * Peak / trick-out (uphill ride → exit before first crash).
+   * peakProximity = 1 − (localHigh − mark)/localHigh
+   * Arm when proximity ≥ peakArmProximity OR trough phase ≥ peakArmPhase.
+   * Fire trick-out when armed AND (stall OR pullback ≥ peakPullbackArm),
+   * or hard fire when pullback ≥ peakHardPullback (first crash start).
+   */
+  peakArmProximity: 0.985,
+  peakArmPhase: 0.85,
+  peakPullbackArm: 0.008,
+  peakHardPullback: 0.02,
+  /**
+   * Second wave: after hard crash, reclaim → ride toward a *higher* peak.
+   * higherPeak = localHigh × (1 + higherPeakExtension)
+   */
+  higherPeakExtension: 0.015,
+  secondWavePrimeBoost: 0.35,
+  /** Prime destination score weights (must sum sensibly; not required = 1). */
+  primeClimbWeight: 0.4,
+  primeWaveWeight: 0.3,
+  primeGateWeight: 0.3,
+  primePeakPenalty: 0.5,
+  /**
+   * Agentic usage credits (communication / ML refinement loop).
+   * Deterministic 15m watch burns 0 Cursor credits.
+   * Agent/LLM step-in only when WATCH=alert or Game authorizes.
+   * On-chain token activity can refine prime weights later (ledger feedback).
+   */
+  creditsPerQuietWatch: 0,
+  creditsPerAlertStepIn: 1,
+  creditsPerLivePlaceReview: 1,
 } as const;
 
 export type AgenticMoveEq = typeof AGENTIC_MOVE_EQ;

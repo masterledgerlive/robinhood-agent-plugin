@@ -25,7 +25,7 @@ function loadExample(name: string): PortfolioSnapshot {
 
 describe("AGENTIC_MOVE_EQ", () => {
   it("matches DIVIDEND_15M sleeve exit floors", () => {
-    assert.equal(AGENTIC_MOVE_EQ.id, "AGENTIC_MOVE_EQ_v1");
+    assert.equal(AGENTIC_MOVE_EQ.id, "AGENTIC_MOVE_EQ_v3");
     assert.equal(takeProfitPct(0), 0.012);
     assert.equal(stopPct(0), 0.02);
     // Wide spread: TP = 1.5×spread, stop = 2×spread
@@ -90,7 +90,7 @@ describe("per-token triggers", () => {
     const watch = watch15m(snap);
     assert.equal(watch.status, "quiet");
     assert.equal(watch.triggers.agentRequired, false);
-    assert.equal(watch.triggers.eqId, "AGENTIC_MOVE_EQ_v1");
+    assert.equal(watch.triggers.eqId, "AGENTIC_MOVE_EQ_v3");
     const near = watch.triggers.tokens.find((t) => t.symbol.startsWith("NEAR"));
     assert.ok(near);
     assert.equal(near!.role, "bank");

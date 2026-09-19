@@ -7,7 +7,7 @@ function pickCandidate(candidates: WatchCandidate[], trickId: string): WatchCand
 
 /**
  * One recommended move this 15m slot.
- * Accumulate (park to banks) beats a new seat. Trough (proven agentic) beats momentum.
+ * Red-day exit → peak trick-out → accumulate (park) → enter.
  * Live=false means hold / learn — do not flip a quiet book to chase.
  * Never places.
  */
@@ -26,6 +26,36 @@ export function recommendNextMove(input: {
     };
     if (seat) move.symbol = seat.symbol;
     return move;
+  }
+
+  for (const trickId of SURF_ACT.trickOutPreference) {
+    const out = pickCandidate(input.candidates, trickId);
+    if (out) {
+      const move: NextMove = {
+        action: "trick_out",
+        trick_id: out.trick_id,
+        reason: "Peak/first-crash trick-out — leave dust, rotate to primed token. No place.",
+        live: true,
+      };
+      if (out.symbol !== undefined) move.symbol = out.symbol;
+      if (out.path_id !== undefined) move.path_id = out.path_id;
+      return move;
+    }
+  }
+
+  for (const trickId of SURF_ACT.secondWavePreference) {
+    const wave2 = pickCandidate(input.candidates, trickId);
+    if (wave2) {
+      const move: NextMove = {
+        action: "second_wave",
+        trick_id: wave2.trick_id,
+        reason: "Second-wave reclaim after crash — ride toward higherPeak. No place.",
+        live: true,
+      };
+      if (wave2.symbol !== undefined) move.symbol = wave2.symbol;
+      if (wave2.path_id !== undefined) move.path_id = wave2.path_id;
+      return move;
+    }
   }
 
   for (const trickId of SURF_ACT.accumulateOrder) {

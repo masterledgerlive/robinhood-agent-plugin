@@ -84,6 +84,10 @@ export {
 } from "./equation.js";
 export { waveOf, rankWaves, waveToTrickId } from "./wave.js";
 export type { WaveKind, WaveState } from "./wave.js";
+export { peakOf, absolutePeakMark, higherPeakMark, peakPullbackAlertMark, workingPeaks } from "./peak.js";
+export type { PeakMode, PeakState } from "./peak.js";
+export { rankPrimedTokens, topPrimedToken } from "./prime.js";
+export type { PrimeCandidate } from "./prime.js";
 export { armTokenTriggers } from "./triggers.js";
 export { FixtureBroker } from "./broker.js";
 export type { TrailBrokerPort } from "./broker.js";

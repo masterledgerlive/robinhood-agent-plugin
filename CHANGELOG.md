@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+- Peak ride + primed rotate + **second-wave** reclaim (`AGENTIC_MOVE_EQ_v3`): absolute local peak, stall/pullback trick-out, first-crash, then ride to `higherPeak`.
+- `trick_out_at_peak` + `second_wave_reentry` tricks; SURF_ACT order: red-day → trick-out → second-wave → park → enter.
+- Agentic usage credits: quiet watch = 0; alert step-in / place review = 1. Docs for credit↔token refinement loop.
+- Broker `peak_pullback` alert specs on working seats. Agents optional for the math.
+
 ## 1.2.0
 
 - AGENTIC_MOVE_EQ_v1: refineable TP/stop/park/whisper score knobs shared by triggers.
