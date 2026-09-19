@@ -13,6 +13,10 @@
     "$comment": { "type": "string" },
     "paths": { "type": "array" },
     "attempts": { "type": "array" },
-    "alerts": { "type": "array" }
+    "alerts": { "type": "array" },
+    "brain": {
+      "type": "object",
+      "description": "Recursive BRAIN_INJECT memory: notes + transmission cost learnings"
+    }
   }
 }

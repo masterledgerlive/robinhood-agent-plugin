@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { TRICK_IDS } from "./constants.js";
 import type {
+  BrainMemory,
   FollowPath,
   LedgerAttempt,
   LedgerFile,
@@ -36,13 +37,23 @@ export class SuccessLedger {
   private readonly pathMap = new Map<string, FollowPath>();
   private readonly attemptMap = new Map<string, LedgerAttempt>();
   private alerts: TrailAlert[] = [];
+  private brainMemory: BrainMemory | undefined;
 
   constructor(init?: Partial<LedgerFile>) {
     this.example = init?.example === true;
     for (const path of init?.paths ?? []) this.pathMap.set(path.path_id, { ...path });
     for (const attempt of init?.attempts ?? []) this.attemptMap.set(attempt.attempt_id, { ...attempt });
     this.alerts = [...(init?.alerts ?? [])];
+    if (init?.brain) this.brainMemory = structuredClone(init.brain);
     this.refreshPathRates();
+  }
+
+  getBrain(): BrainMemory | undefined {
+    return this.brainMemory ? structuredClone(this.brainMemory) : undefined;
+  }
+
+  setBrain(brain: BrainMemory): void {
+    this.brainMemory = structuredClone(brain);
   }
 
   get paths(): FollowPath[] {
@@ -72,7 +83,12 @@ export class SuccessLedger {
         }
       }
     }
-    const copy = { ...attempt, order_ids: [...attempt.order_ids] };
+    const copy = {
+      ...attempt,
+      order_ids: [...attempt.order_ids],
+      ...(attempt.notes !== undefined ? { notes: attempt.notes } : {}),
+      ...(attempt.rt_cost !== undefined ? { rt_cost: attempt.rt_cost } : {}),
+    };
     this.attemptMap.set(copy.attempt_id, copy);
     this.refreshPathRates();
     return copy;
@@ -142,11 +158,12 @@ export class SuccessLedger {
     return this.alerts.slice(-n);
   }
 
-  rankedTricks(): TrickRank[] {
+  rankedTricks(opts?: { kind?: "live" | "paper_surf" }): TrickRank[] {
+    const kind = opts?.kind ?? "live";
     const ids = new Set<string>([...TRICK_IDS]);
     for (const attempt of this.attempts) ids.add(attempt.trick_id);
     for (const path of this.paths) ids.add(path.trick_id);
-    const ranks = [...ids].map((trick_id) => this.statsFor({ trick_id }));
+    const ranks = [...ids].map((trick_id) => this.statsFor({ trick_id }, { kind }));
     ranks.sort((a, b) => {
       const ar = a.success_rate;
       const br = b.success_rate;
@@ -176,6 +193,7 @@ export class SuccessLedger {
       alerts: [...this.alerts],
     };
     if (this.example) file.example = true;
+    if (this.brainMemory) file.brain = structuredClone(this.brainMemory);
     return file;
   }
 
@@ -187,6 +205,7 @@ export class SuccessLedger {
       paths: Array.isArray(rec.paths) ? rec.paths : [],
       attempts: Array.isArray(rec.attempts) ? rec.attempts : [],
       alerts: Array.isArray(rec.alerts) ? rec.alerts : [],
+      ...(rec.brain ? { brain: rec.brain } : {}),
     });
   }
 

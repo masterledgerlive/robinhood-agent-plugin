@@ -1,5 +1,5 @@
 import { SURF_ACT } from "./constants.js";
-import type { NextMove, RedDayResult, SurfLearnResult, WatchCandidate } from "./types.js";
+import type { BrainMemory, NextMove, RedDayResult, SurfLearnResult, WatchCandidate } from "./types.js";
 
 function pickCandidate(candidates: WatchCandidate[], trickId: string): WatchCandidate | undefined {
   return candidates.find((c) => c.trick_id === trickId);
@@ -9,12 +9,14 @@ function pickCandidate(candidates: WatchCandidate[], trickId: string): WatchCand
  * One recommended move this 15m slot.
  * Red-day exit → green-only shelter → peak trick-out → second-wave → accumulate → enter.
  * Live=false means hold / learn — do not flip a quiet book to chase.
+ * Brain notes (transmission cost) refine hold/accumulate reasons when injected.
  * Never places. Agents optional.
  */
 export function recommendNextMove(input: {
   candidates: WatchCandidate[];
   learn: SurfLearnResult;
   redDay: RedDayResult;
+  brain?: BrainMemory;
 }): NextMove {
   if (input.redDay.status === "fired" && input.redDay.phase === "defend") {
     const seat = input.redDay.recommendations.exitWorkingToDust[0];
@@ -121,10 +123,13 @@ export function recommendNextMove(input: {
   for (const trickId of SURF_ACT.enterPreference) {
     const enter = pickCandidate(input.candidates, trickId);
     if (!enter) continue;
+    const tight = input.brain?.useful.preferTighterEdge
+      ? " Brain prefers tighter RT edge from tx-cost memory."
+      : "";
     const move: NextMove = {
       action: "enter",
       trick_id: enter.trick_id,
-      reason: `One ${trickId} seat this 15m slot — gates cleared (math, not chatter). No place.`,
+      reason: `One ${trickId} seat this 15m slot — gates cleared (math, not chatter).${tight} No place.`,
       live: true,
     };
     if (enter.symbol !== undefined) move.symbol = enter.symbol;
@@ -134,20 +139,31 @@ export function recommendNextMove(input: {
 
   const top = input.learn.whatIfTop[0];
   if (top && top.whatIfPnlUsd > 0 && top.trick_id === "hold_bank") {
+    const cs =
+      top.costScore !== undefined ? ` costScore=${top.costScore.toFixed(3)}` : "";
     return {
       action: "accumulate",
       trick_id: "hold_bank",
       symbol: top.symbol,
       path_id: top.path_id,
-      reason: `Hold / grow ${top.symbol} (paper what-if +${top.whatIfPnlUsd.toFixed(4)} after RT). No new working seat this slot.`,
+      reason: `Hold / grow ${top.symbol} (paper what-if +${top.whatIfPnlUsd.toFixed(4)} after RT${cs}). No new working seat this slot.`,
       live: false,
     };
   }
 
+  const costTop =
+    input.brain?.useful.costAwareTopTrick && top
+      ? ` Cost-aware top=${input.brain.useful.costAwareTopTrick}${top.costScore !== undefined ? ` score=${top.costScore.toFixed(3)}` : ""}.`
+      : "";
+  const brainHint = input.brain?.useful.preferTighterEdge
+    ? " Brain: prefer 2× RT (tx costs)."
+    : input.brain?.injected
+      ? " Brain injected; tx-cost memory tracking."
+      : "";
   return {
     action: "hold",
     trick_id: "hold_bank",
-    reason: "No live gate-clear rotate. SURF_LEARN keeps ranking. Banks stay; do not chase.",
+    reason: `No live gate-clear rotate.${brainHint}${costTop} Banks stay; do not chase.`,
     live: false,
   };
 }

@@ -97,8 +97,29 @@ export function formatTrailView(input: {
       ? ["  none"]
       : learn.whatIfTop.map((row) => {
           const pnl = `${row.whatIfPnlUsd >= 0 ? "+" : ""}${row.whatIfPnlUsd.toFixed(4)}`;
-          return `  ${row.rank}  ${pad(row.path_id, 36)} paper ${pnl}  live=${row.liveClears ? "yes" : "no"}  ${row.trick_id} ${row.symbol}`;
+          const cs =
+            row.costScore !== undefined ? ` cost=${row.costScore.toFixed(2)}` : "";
+          return `  ${row.rank}  ${pad(row.path_id, 36)} paper ${pnl}${cs}  live=${row.liveClears ? "yes" : "no"}  ${row.trick_id} ${row.symbol}`;
         });
+
+  const brain = input.watch?.brain ?? input.ledger?.getBrain();
+  const brainHeader = !brain
+    ? ["  not injected"]
+    : [
+        `  injected=yes  id ${brain.id}  cycles ${brain.cycles}  useful=${brain.useful.usefulProof ? "yes" : "gathering"}  credits=${brain.useful.creditHint}`,
+        `  momentum_unlocked=${brain.useful.momentumUnlocked ? "yes" : "no"}  top=${brain.useful.costAwareTopTrick ?? "none"}  prefer_tight_edge=${brain.useful.preferTighterEdge ? "yes" : "no"}  paper_attempts=${brain.useful.paperAttempts}`,
+      ];
+  const costLines =
+    !brain || brain.transmission.length === 0
+      ? ["  none"]
+      : brain.transmission.slice(0, 8).map((r) => {
+          const pnlRt = r.pnlPerRt === null ? "n/a" : r.pnlPerRt.toFixed(3);
+          return `  ${pad(r.trick_id, 28)} n=${r.samples}  meanRT ${(r.meanRtCost * 100).toFixed(3)}%  pnl/RT ${pnlRt}  useful=${r.useful ? "yes" : "no"}`;
+        });
+  const noteLines =
+    !brain || brain.notes.length === 0
+      ? ["  none"]
+      : brain.notes.slice(-6).map((n) => `  ${n.at}  [${n.kind}] ${singleLine(n.text)}`);
 
   const red = input.watch?.redDay;
   const redDayLines = !red
@@ -175,6 +196,12 @@ export function formatTrailView(input: {
     ...candidateLines,
     "WHAT-IF TOP",
     ...whatIfLines,
+    "BRAIN (injected memory)",
+    ...brainHeader,
+    "COST LEARN (transmission = RT)",
+    ...costLines,
+    "BRAIN NOTES",
+    ...noteLines,
     "RED_DAY",
     ...redDayLines,
     "WHISPERS",
@@ -213,6 +240,10 @@ export function watchToMachineLog(
       triggers: watch.triggers.actionableCount,
       eq: watch.triggers.eqId,
       wave_next: watch.triggers.next.where,
+      brain_injected: watch.brain.injected,
+      brain_cycles: watch.brain.cycles,
+      brain_useful: watch.brain.useful.usefulProof,
+      credit_hint: watch.brain.useful.creditHint,
     },
     result: {
       ok: true,
@@ -232,7 +263,7 @@ export function watchToMachineLog(
         : watch.redDay.active
           ? `RED_DAY ${watch.redDay.phase}. Green-only shelter / wait bottoms. Agents optional. No place.`
           : watch.status === "quiet"
-            ? "Quiet live book. Wave triggers armed from tape. SURF_LEARN ranks updated. No place. Agents optional."
+            ? "Quiet live book. Wave triggers armed from tape. SURF_LEARN + BRAIN tx-cost memory updated. No place. Agents optional."
             : "Alert from wave math and/or gate-clear tricks. Agents optional — cron already knows WHERE/WHEN. No place.",
   };
   return entry;

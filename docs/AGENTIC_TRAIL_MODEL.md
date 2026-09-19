@@ -115,6 +115,7 @@ Small-capital research that locked LOW_CAP_SLOW: frequency is the killer on ~$20
 | Trail plain-text view | `src/log/trail-view.ts` (extends MACHINE VIEW) |
 | EXAMPLE fixtures | `tests/fixtures/trail/*.example.json` |
 | DIVIDEND_15M + SURF_LEARN + SURF_ACT | [DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md), `src/trail/surf-learn.ts`, `src/trail/surf-act.ts` |
+| BRAIN_INJECT (recursive memory + tx costs) | [BRAIN_INJECT.md](BRAIN_INJECT.md), `src/trail/brain.ts` |
 | Wave equation + per-token triggers | [AGENTIC_MOVE_EQ.md](AGENTIC_MOVE_EQ.md), `src/trail/equation.ts`, `src/trail/wave.ts`, `src/trail/triggers.ts` |
 | Peak ride + primed rotate | [PEAK_PRIME_ROTATE.md](PEAK_PRIME_ROTATE.md), `src/trail/peak.ts`, `src/trail/prime.ts`, `src/tricks/trick-out-at-peak.ts`, `src/tricks/second-wave-reentry.ts` |
 | Agentic usage credits | [AGENTIC_USAGE_CREDITS.md](AGENTIC_USAGE_CREDITS.md) |

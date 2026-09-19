@@ -42,6 +42,7 @@ import type {
 import { rankWaves, waveOf, waveToTrickId, type WaveState } from "./wave.js";
 import { peakOf, peakPullbackAlertMark } from "./peak.js";
 import { topPrimedToken } from "./prime.js";
+import type { SuccessLedger } from "./ledger.js";
 
 function sleeveRole(snapshot: PortfolioSnapshot, symbol: string): TriggerRole {
   const sleeve = findSleeve(snapshot, symbol);
@@ -409,6 +410,7 @@ export function armTokenTriggers(
     redDay?: RedDayResult;
     candidates?: WatchCandidate[];
     eq?: AgenticMoveEq;
+    ledger?: SuccessLedger;
   },
 ): TokenTriggerPlan {
   const eq = opts?.eq ?? AGENTIC_MOVE_EQ;
@@ -462,7 +464,10 @@ export function armTokenTriggers(
 
   const actionable = tokens.filter((t) => t.state === "fired" || (t.state === "armed" && t.where !== "hold_bank" && t.where !== "hold_dust" && t.where !== "none" && t.where !== "ride_peak"));
   const cascadeDest = topCascadeDestination(snapshot);
-  const primed = topPrimedToken(snapshot);
+  const primed = topPrimedToken(
+    snapshot,
+    opts?.ledger ? { ledger: opts.ledger } : undefined,
+  );
   const next = pickWaveNext(
     tokens,
     workingSeats(snapshot).length > 0,

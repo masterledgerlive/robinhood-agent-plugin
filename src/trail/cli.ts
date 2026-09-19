@@ -7,7 +7,7 @@
  *
  * Reads local fixtures only. Never places orders. Never calls Robinhood MCP.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { formatTrailView, formatWatchMachineLog } from "../log/trail-view.js";
 import { FixtureBroker } from "./broker.js";
 import { SuccessLedger } from "./ledger.js";
@@ -59,7 +59,11 @@ async function main(argv = process.argv.slice(2)): Promise<number> {
   }
 
   const snapshot = flags.snapshot ? loadSnapshot(flags.snapshot) : undefined;
-  const ledger = flags.ledger ? SuccessLedger.loadFile(flags.ledger) : new SuccessLedger({ example: true });
+  const ledger = flags.ledger
+    ? existsSync(flags.ledger)
+      ? SuccessLedger.loadFile(flags.ledger)
+      : new SuccessLedger({ example: true })
+    : new SuccessLedger({ example: true });
   const whispers: WhisperCard[] = flags.whispers ? loadWhisperFile(flags.whispers) : [];
 
   if (flags.command === "watch") {
@@ -103,6 +107,7 @@ function usage(): string {
     "  view  [--snapshot <file>] [--ledger <file>] [--whispers <file>] [--json]",
     "",
     "Quiet is the default. Alert only when a named trick clears DIVIDEND_15M (or LOW_CAP_SLOW) gates.",
+    "Pass --ledger to persist SURF_LEARN + BRAIN_INJECT memory (creates the file if missing).",
     "Cron this. Do not spend Cursor/agent credits on unchanged 15m checks.",
   ].join("\n");
 }

@@ -1,7 +1,9 @@
 import { SURF_LEARN } from "./constants.js";
 import { evaluateAll } from "../tricks/catalog.js";
 import { baseSymbol, expectancyHaltActive, isAgenticAccount, softHaltActive } from "./gates.js";
+import { injectBrain } from "./brain.js";
 import type { SuccessLedger } from "./ledger.js";
+import { SuccessLedger as Ledger } from "./ledger.js";
 import { redDayAllowsTroughReentry, redDayTrigger } from "./red-day.js";
 import { recommendNextMove } from "./surf-act.js";
 import { runSurfLearn } from "./surf-learn.js";
@@ -14,6 +16,7 @@ const CHASE_TRICKS = new Set(["momentum_15m", "mean_revert_15m"]);
 /**
  * Deterministic 15m evaluate.
  * Live quiet is the default. SURF_LEARN paper what-ifs run every cycle.
+ * BRAIN_INJECT loads recursive memory + learns from transmission costs every cycle.
  * Wave triggers arm every token from the tape — agents optional.
  * Lesson 2026-09-19: RED_DAY → exit → green-only → bottoms → agentless trough re-enter.
  * Never places.
@@ -23,6 +26,8 @@ export function watch15m(
   ledger?: SuccessLedger,
   whispers?: WhisperCard[],
 ): WatchResult {
+  const memory = ledger ?? new Ledger({ example: snapshot.example === true });
+
   const halt = {
     soft: isAgenticAccount(snapshot) && softHaltActive(snapshot),
     expectancy: isAgenticAccount(snapshot) && expectancyHaltActive(snapshot),
@@ -38,7 +43,7 @@ export function watch15m(
 
   for (const ev of evaluations) {
     if (!ev.eligible) continue;
-    if (ev.trick_id === "momentum_15m" && !momentumLiveUnlocked(ledger)) continue;
+    if (ev.trick_id === "momentum_15m" && !momentumLiveUnlocked(memory)) continue;
     if (redDay.active && CHASE_TRICKS.has(ev.trick_id)) continue;
     if (
       redDay.active &&
@@ -57,7 +62,7 @@ export function watch15m(
     ) {
       continue;
     }
-    const path = ledger?.matchPath(ev.trick_id, ev.symbol);
+    const path = memory.matchPath(ev.trick_id, ev.symbol);
     const candidate: WatchCandidate = {
       trick_id: ev.trick_id,
       eligible: true,
@@ -71,9 +76,10 @@ export function watch15m(
   const liveHits = new Set(
     candidates.map((c) => `${c.trick_id}:${c.symbol ? baseSymbol(c.symbol) : ""}`),
   );
-  const learn = runSurfLearn(snapshot, ledger, liveHits);
-  const nextMove = recommendNextMove({ candidates, learn, redDay });
-  const triggers = armTokenTriggers(snapshot, inbox, { redDay, candidates });
+  const learn = runSurfLearn(snapshot, memory, liveHits);
+
+  // Brain needs watch status for credit hints — arm triggers first, then inject.
+  const triggers = armTokenTriggers(snapshot, inbox, { redDay, candidates, ledger: memory });
 
   // Wave plan always prints. Working TP/stop/park/red-day/green-only fires wake WATCH.
   const waveFire = triggers.tokens.some(
@@ -87,8 +93,19 @@ export function watch15m(
   );
 
   const liveQuiet = candidates.length === 0 && !redDay.active && !waveFire;
+  const status = liveQuiet ? "quiet" : "alert";
+
+  const brain = injectBrain({
+    snapshot,
+    ledger: memory,
+    learn,
+    watchStatus: status,
+  });
+
+  const nextMove = recommendNextMove({ candidates, learn, redDay, brain });
+
   const result: WatchResult = {
-    status: liveQuiet ? "quiet" : "alert",
+    status,
     asOf: snapshot.asOf,
     halt,
     candidates,
@@ -97,6 +114,7 @@ export function watch15m(
     redDay,
     nextMove,
     triggers,
+    brain,
   };
 
   if (ledger && result.status === "alert") {

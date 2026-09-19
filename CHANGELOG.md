@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0
+
+- **BRAIN_INJECT:** recursive memory injected every watch/load. Paper attempts carry `notes` + `rt_cost`; ledger persists `brain` (notes + transmission rows).
+- Learn from transmission costs (RT = 2× one-way): cost-aware WHAT-IF re-rank, prefer-tighter-edge refine, prime `memRT` penalty, credit hint on quiet vs alert.
+- TRAIL VIEW prints `BRAIN` / `COST LEARN` / `BRAIN NOTES`. MACHINE LOG tags `brain_injected` / `brain_useful` / `credit_hint`.
+
 ## 1.5.0
 
 - **AGENTIC_MOVE_EQ_v4:** correct Wilder RSI(14) from `quote.closes` (leave-overbought = rollingDown). No invented few-sample “tape RSI.”

@@ -43,6 +43,9 @@ export type {
   TokenTriggerPlan,
   TriggerAction,
   TriggerBrokerAlertSpec,
+  BrainMemory,
+  BrainNote,
+  TransmissionCostRow,
 } from "./types.js";
 export {
   baseSymbol,
@@ -68,6 +71,7 @@ export {
   workingSeats,
 } from "./gates.js";
 export { SuccessLedger, LedgerError } from "./ledger.js";
+export { injectBrain, costAwareScore, reRankWhatIfByTransmissionCost, meanRtBySymbol, BRAIN } from "./brain.js";
 export { watch15m } from "./watcher.js";
 export { runSurfLearn, whatIfPnlUsd, surfUniverseQuotes } from "./surf-learn.js";
 export { recommendNextMove } from "./surf-act.js";

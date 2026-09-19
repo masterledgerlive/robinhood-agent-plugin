@@ -211,6 +211,13 @@ export type LedgerAttempt = {
   outcome: LedgerOutcome;
   /** paper_surf = SURF_LEARN what-if (no order id). Default live. */
   kind?: "live" | "paper_surf";
+  /**
+   * Round-trip transmission cost fraction (≈ 2× one-way spread).
+   * Paper surfs always set this; live fills should when known.
+   */
+  rt_cost?: number | null;
+  /** Human-readable note — primary trackable surface in the data field. */
+  notes?: string;
 };
 
 export type TrailAlert = {
@@ -242,6 +249,8 @@ export type WhatIfPath = {
   spreadAtEntry: number;
   liveClears: boolean;
   rank: number;
+  /** Paper PnL per estimated RT dollar — set by BRAIN_INJECT cost re-rank. */
+  costScore?: number;
 };
 
 export type SurfLearnResult = {
@@ -249,6 +258,48 @@ export type SurfLearnResult = {
   notionalUsd: number;
   whatIfTop: WhatIfPath[];
   liveMicroOk: boolean;
+};
+
+/** Plain-text memory row — easily read in ledger JSON / TRAIL VIEW. */
+export type BrainNote = {
+  at: string;
+  kind: "inject" | "tx_cost" | "unlock" | "refine" | "useful";
+  text: string;
+  data?: Record<string, string | number | boolean | null>;
+};
+
+/** Aggregated transmission-cost learning for one trick. */
+export type TransmissionCostRow = {
+  trick_id: string;
+  samples: number;
+  meanOneWaySpread: number;
+  /** Mean RT fraction (2× one-way). */
+  meanRtCost: number;
+  meanPnlAfterRt: number;
+  /** mean pnl / (notional × meanRt). null when RT unknown. */
+  pnlPerRt: number | null;
+  useful: boolean;
+};
+
+/**
+ * Recursive brain memory injected every watch/load.
+ * Persisted on the ledger file so the next cycle loads prior notes.
+ */
+export type BrainMemory = {
+  injected: true;
+  id: string;
+  asOf: string;
+  cycles: number;
+  notes: BrainNote[];
+  transmission: TransmissionCostRow[];
+  useful: {
+    momentumUnlocked: boolean;
+    costAwareTopTrick: string | null;
+    preferTighterEdge: boolean;
+    paperAttempts: number;
+    creditHint: number;
+    usefulProof: boolean;
+  };
 };
 
 export type NextMoveAction =
@@ -361,6 +412,8 @@ export type WatchResult = {
   nextMove: NextMove;
   /** Automatic per-token triggers from wave equation. Agents optional. */
   triggers: TokenTriggerPlan;
+  /** Recursive memory + transmission-cost learning — always injected each cycle. */
+  brain: BrainMemory;
 };
 
 export type TrickRank = {
@@ -376,4 +429,6 @@ export type LedgerFile = {
   paths: FollowPath[];
   attempts: LedgerAttempt[];
   alerts: TrailAlert[];
+  /** Recursive brain memory (notes + transmission cost learnings). */
+  brain?: BrainMemory;
 };

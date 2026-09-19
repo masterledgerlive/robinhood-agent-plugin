@@ -38,6 +38,8 @@ export {
   SuccessLedger,
   LedgerError,
   watch15m,
+  injectBrain,
+  BRAIN,
   recommendNextMove,
   redDayTrigger,
   FixtureBroker,
@@ -60,6 +62,7 @@ export type {
   WhisperCard,
   RedDayResult,
   NextMove,
+  BrainMemory,
 } from "./trail/index.js";
 export {
   TRICK_CATALOG,

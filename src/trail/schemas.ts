@@ -60,6 +60,14 @@ export const ledgerAttemptSchema = {
     spread_at_entry: { type: ["number", "null"] },
     outcome: { type: "string", enum: ["win", "loss", "open", "skipped"] },
     kind: { type: "string", enum: ["live", "paper_surf"] },
+    rt_cost: {
+      type: ["number", "null"],
+      description: "Round-trip transmission cost fraction (≈ 2× one-way spread)",
+    },
+    notes: {
+      type: "string",
+      description: "Human-readable note — trackable data field for brain/tx-cost learning",
+    },
   },
 } as const;
 
@@ -75,6 +83,10 @@ export const successLedgerSchema = {
     paths: { type: "array", items: followPathSchema },
     attempts: { type: "array", items: ledgerAttemptSchema },
     alerts: { type: "array" },
+    brain: {
+      type: "object",
+      description: "Recursive BRAIN_INJECT memory: notes + transmission cost learnings",
+    },
   },
 } as const;
 
