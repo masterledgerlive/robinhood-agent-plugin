@@ -196,12 +196,7 @@ describe("cascade exit + near-support destination", () => {
     const exit = cascadeExitOf(snap, "ABC");
     assert.ok(exit);
     assert.equal(exit!.staleWave, true);
-    assert.equal(exit!.fire, true);
     assert.equal(exit!.earlyCascade, true);
-    assert.equal(exit!.fullTakeProfit, edgeClearsTp(exit));
+    assert.equal(exit!.fire, true);
   });
 });
-
-function edgeClearsTp(exit: NonNullable<ReturnType<typeof cascadeExitOf>>): boolean {
-  return exit.fullTakeProfit;
-}
