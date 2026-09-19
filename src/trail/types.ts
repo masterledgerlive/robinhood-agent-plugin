@@ -311,7 +311,7 @@ export type NextMoveAction =
   | "trick_out"
   | "second_wave";
 
-/** Math-only recommendation. Never an order. */
+/** Math-only recommendation. Never an order — alerts sync separately. */
 export type NextMove = {
   action: NextMoveAction;
   trick_id: string;
@@ -319,6 +319,13 @@ export type NextMove = {
   live: boolean;
   symbol?: string;
   path_id?: string;
+};
+
+/** Batch of cascade rotates for one 15m slot (≥10 target via SURF_ACT caps). */
+export type CascadeMoveBatch = {
+  moves: NextMove[];
+  capacity: number;
+  firedCount: number;
 };
 
 /** Per-token auto trigger — armed by wave math; agents optional. */
@@ -340,13 +347,19 @@ export type TriggerAction =
   | "ride_peak"
   | "second_wave_reentry";
 
-/** Broker create_alert shape — recommend only; watcher never writes alerts. */
+/** Broker create_alert shape — math specs; sync via alert-bridge (no LLM). */
 export type TriggerBrokerAlertSpec = {
   symbol: string;
   asset_class: "crypto" | "equity";
   condition_type: "price_above" | "price_below";
   threshold: string;
-  purpose: "take_profit" | "stop" | "trough_reclaim" | "peak_pullback" | "support";
+  purpose:
+    | "take_profit"
+    | "stop"
+    | "trough_reclaim"
+    | "peak_pullback"
+    | "support"
+    | "cascade_jump_out";
 };
 
 export type TokenTrigger = {
@@ -360,6 +373,8 @@ export type TokenTrigger = {
     troughReclaimMark?: number;
     /** Support line already on the tape (trough / session open). */
     supportMark?: number;
+    /** Absolute mark where cascade jump-out % is hit (cost × (1+jumpOut)). */
+    cascadeJumpOutMark?: number;
     parkEligible: boolean;
     leaveDustUsd?: number;
     equation: string;
@@ -410,6 +425,8 @@ export type WatchResult = {
   learn: SurfLearnResult;
   redDay: RedDayResult;
   nextMove: NextMove;
+  /** Cascade rotate batch this 15m slot (pure math; up to cascadeRotatesPerSlot). */
+  cascadeMoves: CascadeMoveBatch;
   /** Automatic per-token triggers from wave equation. Agents optional. */
   triggers: TokenTriggerPlan;
   /** Recursive memory + transmission-cost learning — always injected each cycle. */

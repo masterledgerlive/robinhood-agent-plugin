@@ -92,6 +92,19 @@ export function formatTrailView(input: {
         `  ${singleLine(nm.reason)}`,
       ];
 
+  const cm = input.watch?.cascadeMoves;
+  const cascadeMoveLines = !cm
+    ? ["  none"]
+    : cm.moves.length === 0
+      ? [`  0/${cm.capacity} (fired=${cm.firedCount}) — waiting %-hit jump-out`]
+      : [
+          `  ${cm.moves.length}/${cm.capacity} rotates this slot (fired=${cm.firedCount})`,
+          ...cm.moves.map(
+            (m, i) =>
+              `  ${i + 1}. ${m.action} ${m.trick_id}${m.symbol ? ` ${m.symbol}` : ""} live=${m.live ? "yes" : "no"}`,
+          ),
+        ];
+
   const whatIfLines =
     !learn || learn.whatIfTop.length === 0
       ? ["  none"]
@@ -165,8 +178,12 @@ export function formatTrailView(input: {
           const wave = t.wave ? ` wave=${t.wave.kind}@${(t.wave.amplitude * 100).toFixed(2)}%` : "";
           const tp =
             t.when.takeProfitMark !== undefined ? ` tp=${t.when.takeProfitMark.toFixed(4)}` : "";
+          const jump =
+            t.when.cascadeJumpOutMark !== undefined
+              ? ` jump%=${t.when.cascadeJumpOutMark.toFixed(4)}`
+              : "";
           const stop = t.when.stopMark !== undefined ? ` stop=${t.when.stopMark.toFixed(4)}` : "";
-          return `  ${pad(t.symbol, 12)} ${pad(t.role, 10)} ${pad(t.state, 8)} ${pad(t.where, 18)}${tp}${stop}${wave}`;
+          return `  ${pad(t.symbol, 12)} ${pad(t.role, 10)} ${pad(t.state, 8)} ${pad(t.where, 18)}${tp}${jump}${stop}${wave}`;
         });
   const waveLines =
     !trig || trig.waves.length === 0
@@ -187,6 +204,8 @@ export function formatTrailView(input: {
     `BP      ${bpLine}`,
     "NEXT MOVE",
     ...nextMoveLines,
+    "CASCADE MOVES (math %-hit; ≥10/15m target)",
+    ...cascadeMoveLines,
     "WAVES (pure tape — agents optional)",
     ...waveLines,
     "TRIGGERS (auto per token)",
@@ -236,6 +255,8 @@ export function watchToMachineLog(
       whatif_top: watch.learn.whatIfTop.length,
       surf_learn: true,
       surf_act: watch.nextMove.action,
+      cascade_moves: watch.cascadeMoves.moves.length,
+      cascade_capacity: watch.cascadeMoves.capacity,
       red_day: watch.redDay.status,
       triggers: watch.triggers.actionableCount,
       eq: watch.triggers.eqId,

@@ -41,6 +41,9 @@ export {
   injectBrain,
   BRAIN,
   recommendNextMove,
+  recommendCascadeMoves,
+  syncMathAlertsToBroker,
+  mcpAlertBridge,
   redDayTrigger,
   FixtureBroker,
   assertSnapshot,
@@ -62,6 +65,7 @@ export type {
   WhisperCard,
   RedDayResult,
   NextMove,
+  CascadeMoveBatch,
   BrainMemory,
 } from "./trail/index.js";
 export {

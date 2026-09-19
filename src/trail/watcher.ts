@@ -5,7 +5,7 @@ import { injectBrain } from "./brain.js";
 import type { SuccessLedger } from "./ledger.js";
 import { SuccessLedger as Ledger } from "./ledger.js";
 import { redDayAllowsTroughReentry, redDayTrigger } from "./red-day.js";
-import { recommendNextMove } from "./surf-act.js";
+import { recommendCascadeMoves, recommendNextMove } from "./surf-act.js";
 import { runSurfLearn } from "./surf-learn.js";
 import { armTokenTriggers } from "./triggers.js";
 import type { PortfolioSnapshot, WatchCandidate, WatchResult, WhisperCard } from "./types.js";
@@ -18,8 +18,9 @@ const CHASE_TRICKS = new Set(["momentum_15m", "mean_revert_15m"]);
  * Live quiet is the default. SURF_LEARN paper what-ifs run every cycle.
  * BRAIN_INJECT loads recursive memory + learns from transmission costs every cycle.
  * Wave triggers arm every token from the tape — agents optional.
+ * Cascade %-hit jump-out fires without LLM; sync brokerAlerts so RH can act.
  * Lesson 2026-09-19: RED_DAY → exit → green-only → bottoms → agentless trough re-enter.
- * Never places.
+ * Never places orders (alert sync is separate via alert-bridge).
  */
 export function watch15m(
   snapshot: PortfolioSnapshot,
@@ -80,8 +81,9 @@ export function watch15m(
 
   // Brain needs watch status for credit hints — arm triggers first, then inject.
   const triggers = armTokenTriggers(snapshot, inbox, { redDay, candidates, ledger: memory });
+  const cascadeMoves = recommendCascadeMoves({ triggers, candidates });
 
-  // Wave plan always prints. Working TP/stop/park/red-day/green-only fires wake WATCH.
+  // Wave plan always prints. Working TP/stop/park/red-day/green-only/%-hit fires wake WATCH.
   const waveFire = triggers.tokens.some(
     (t) =>
       t.state === "fired" &&
@@ -102,7 +104,7 @@ export function watch15m(
     watchStatus: status,
   });
 
-  const nextMove = recommendNextMove({ candidates, learn, redDay, brain });
+  const nextMove = recommendNextMove({ candidates, learn, redDay, brain, cascadeMoves });
 
   const result: WatchResult = {
     status,
@@ -113,6 +115,7 @@ export function watch15m(
     learn,
     redDay,
     nextMove,
+    cascadeMoves,
     triggers,
     brain,
   };

@@ -12,14 +12,14 @@ import type { TrickEvaluation } from "../trail/types.js";
 import type { Trick } from "./types.js";
 
 /**
- * Peak / stale-profit / RSI leave-overbought cascade out.
+ * Peak / %-hit cascade out (edgePct ≥ jumpOutPct — no LLM wait).
  * Leave dust; rotate toward lowest promising volatile (near support).
- * Never flattens. Never places. Agents optional.
+ * Never flattens. Never places. Sync RH create_alert on cascade_jump_out.
  */
 export const trickOutAtPeak: Trick = {
   id: "trick_out_at_peak",
   whenItMayFire:
-    "Working seat: peak stall/pullback, failed peak break, stale wave with edge, or Wilder RSI leave-overbought. Leave dust. Destination = cascade near-support volatile.",
+    "Working seat: edgePct ≥ jumpOutPct (instant), full TP, peak stall/pullback, failed peak, stale wave, or Wilder RSI leave-overbought. Leave dust. Destination = cascade near-support volatile.",
   paramsSchema: {
     type: "object",
     additionalProperties: false,
@@ -28,7 +28,8 @@ export const trickOutAtPeak: Trick = {
       peakArmPhase: { type: "number", description: "Default 0.85" },
       peakPullbackArm: { type: "number", description: "Default 0.008" },
       peakHardPullback: { type: "number", description: "Default 0.02" },
-      cascadeMicroProfitPct: { type: "number", description: "Default 0.003" },
+      cascadeJumpOutPct: { type: "number", description: "Default 0.003 (0.3%)" },
+      cascadeMicroProfitPct: { type: "number", description: "Alias of cascadeJumpOutPct" },
       rsiOverbought: { type: "number", description: "Default 70" },
       rsiPeriod: { type: "number", description: "Default 14" },
     },
@@ -62,12 +63,12 @@ export const trickOutAtPeak: Trick = {
       if (armed.length > 0) {
         return {
           eligible: false,
-          reason: `Peak armed on ${armed.map((p) => baseSymbol(p.symbol)).join(", ")} — ride until stall/pullback/RSI leave-OB; not trick-out yet`,
+          reason: `Peak armed on ${armed.map((p) => baseSymbol(p.symbol)).join(", ")} — ride until edgePct≥jumpOutPct or stall/pullback/RSI leave-OB; not trick-out yet`,
         };
       }
       return {
         eligible: false,
-        reason: "No working seat at peak/stale-profit/RSI cascade exit",
+        reason: "No working seat at %-hit/peak/stale/RSI cascade exit",
       };
     }
 
@@ -80,7 +81,7 @@ export const trickOutAtPeak: Trick = {
 
     return {
       eligible: true,
-      reason: `Cascade out ${baseSymbol(from.symbol)} (peak/stale/RSI); leave dust${destText}. No place.`,
+      reason: `Cascade out ${baseSymbol(from.symbol)} (%-hit/peak/stale/RSI); leave dust${destText}. Sync RH alert.`,
       symbol: from.symbol,
     };
   },

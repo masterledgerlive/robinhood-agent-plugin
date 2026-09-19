@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0
+
+- **AGENTIC_MOVE_EQ_v5:** cascade intermediates as percentages (`edgePct` / `jumpOutPct` / `tpPct`); **jump out the instant** `edgePct ≥ jumpOutPct` — no stale/RSI/failedPeak wait.
+- Full TP also fires cascade. Soft confirm path retained.
+- Working seats arm `cascade_jump_out` broker alerts; `syncMathAlertsToBroker` / `mcpAlertBridge` push `create_alert` without Cursor LLM.
+- SURF_ACT: `cascadeRotatesPerSlot=10`, `preferNewEntriesPerSlot=10`. DIVIDEND_15M: 240 entries/day, 8 working seats.
+- TRAIL VIEW prints `CASCADE MOVES`. Target ≥10 pure-math cascade rotates per 15m.
+
 ## 1.6.0
 
 - **BRAIN_INJECT:** recursive memory injected every watch/load. Paper attempts carry `notes` + `rt_cost`; ledger persists `brain` (notes + transmission rows).

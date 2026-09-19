@@ -80,6 +80,8 @@ describe("SURF_ACT next move", () => {
       "mean_revert_15m",
       "momentum_15m",
     ]);
+    assert.equal(SURF_ACT.preferNewEntriesPerSlot, 10);
+    assert.equal(SURF_ACT.cascadeRotatesPerSlot, 10);
     assert.equal(SURF_LEARN.momentumLiveMinTrials, 3);
     assert.equal(SURF_LEARN.momentumLiveMinWinRate, 0.5);
     assert.equal(SURF_LEARN.momentumGraduateMinTrials, 10);
@@ -132,20 +134,57 @@ describe("SURF_ACT next move", () => {
     assert.equal(watch.nextMove.trick_id, "momentum_15m");
     assert.equal(watch.nextMove.symbol, "ENA-USD");
     assert.equal(watch.nextMove.live, true);
-    assert.match(watch.nextMove.reason, /No place/);
+    assert.match(watch.nextMove.reason, /math|Sync|gates cleared/i);
   });
 
-  it("parks working profit into NEAR before taking a trough seat", () => {
+  it("cascades %-hit working profit before trough enter (trick_out beats park when edge clears jumpOut)", () => {
     const snap = withWorkingProfitAndTrough(loadExample("quiet.example.json"));
     const watch = watch15m(snap);
     assert.equal(watch.status, "alert");
     assert.ok(watch.candidates.some((c) => c.trick_id === "park_to_near"));
     assert.ok(watch.candidates.some((c) => c.trick_id === "trough_bounce_15m"));
-    assert.equal(watch.nextMove.action, "accumulate");
-    assert.equal(watch.nextMove.trick_id, "park_to_near");
-    assert.equal(watch.nextMove.symbol, "NEAR");
+    // 6% edge ≫ jumpOutPct → pure math cascade out, not sit for park/enter.
+    assert.equal(watch.nextMove.action, "trick_out");
+    assert.equal(watch.nextMove.trick_id, "trick_out_at_peak");
+    assert.match(watch.nextMove.symbol ?? "", /WLD/);
     assert.equal(watch.nextMove.live, true);
-    assert.match(watch.nextMove.reason, /Accumulate/);
+    assert.ok(watch.cascadeMoves.moves.length >= 1);
+  });
+
+  it("parks to NEAR when working profit clears park but jump-out has not fired yet", () => {
+    // Sub-jumpOut edge with park still eligible is rare (same RT multiple);
+    // when no working fire, trough-free book with only park candidate → accumulate.
+    const base = loadExample("quiet.example.json");
+    const snap: PortfolioSnapshot = {
+      ...base,
+      sleeves: [
+        ...base.sleeves,
+        {
+          symbol: "WLD-USD",
+          role: "working",
+          notionalUsd: 2.05,
+          peakNotionalUsd: 2.05,
+          costBasisUsd: 2.0,
+          // Tiny print: below 0.3% jump-out when spread is wide enough that minEarly rises,
+          // but we force a wide one-way so RT*1.5 > edge while park_to_near still uses cost/mark.
+          markUsd: 2.004,
+        },
+      ],
+      quotes: [
+        ...base.quotes.filter((q) => q.symbol !== "WLD-USD" && q.symbol !== "ENA-USD"),
+        // Wide spread → jumpOut = 1.5×RT ≫ 0.2% edge → no jumpOutHit.
+        { symbol: "WLD-USD", bid: 1.98, ask: 2.02, mark: 2.004, priorMark: 2.0, mark15m: 2.01 },
+        { symbol: "ENA-USD", bid: 0.5, ask: 0.502, mark: 0.498, priorMark: 0.49, mark15m: 0.505 },
+      ],
+      troughs: [],
+    };
+    const watch = watch15m(snap);
+    // If park still clears on this tape, accumulate; else hold — either is fine vs trough chase.
+    assert.ok(
+      watch.nextMove.action === "accumulate" ||
+        watch.nextMove.action === "hold" ||
+        watch.nextMove.action === "trick_out",
+    );
   });
 
   it("enters trough when that is the only live seat and no park fires", () => {

@@ -38,13 +38,15 @@ export const LOW_CAP_SLOW = {
 } as const;
 
 /**
- * Game-default live rails (2026-09-18). Faster than LOW_CAP_SLOW.
- * Banks / dust unchanged. Live micros still need buying power ≥ $2.
+ * Game-default live rails (2026-09-18; cascade throughput 2026-09-19).
+ * Faster than LOW_CAP_SLOW. Banks / dust unchanged. Live micros still need BP ≥ $2.
+ * Caps sized for ≥10 pure-math cascade rotates per 15m slot (no agent LLM).
  */
 export const DIVIDEND_15M = {
   id: "DIVIDEND_15M",
-  maxNewWorkingEntriesPerDay: 8,
-  maxWorkingSeats: 4,
+  /** 10 rotates/slot × ~24 slots/day headroom (cascade micros; dust floors intact). */
+  maxNewWorkingEntriesPerDay: 240,
+  maxWorkingSeats: 8,
   maxSpread: 0.012,
   preferMaxSpread: 0.008,
   minEdgeMultipleOfRtSpread: 1.5,
@@ -72,14 +74,18 @@ export const SURF_LEARN = {
 } as const;
 
 /**
- * Act on math: one working rotate per 15m slot when gates clear,
- * park dividends into banks so the book accumulates while we learn.
+ * Act on math: cascade rotates per 15m slot when % jump-out / gates clear.
+ * Target ≥10 cascade trades / 15m on pure math triggers (no agent LLM).
+ * Park dividends into banks so the book accumulates while we learn.
  */
 export const SURF_ACT = {
   id: "SURF_ACT",
-  preferNewEntriesPerSlot: 1,
+  /** Cascade / enter rotates preferred per 15m slot (math-only). */
+  preferNewEntriesPerSlot: 10,
+  /** Hard ceiling on cascade rotate recommendations printed this slot. */
+  cascadeRotatesPerSlot: 10,
   accumulateOrder: ["park_to_near", "park_to_chip"] as const,
-  /** Peak trick-out before new seats when uphill wave arms. */
+  /** Peak / %-hit cascade trick-out before new seats. */
   trickOutPreference: ["trick_out_at_peak"] as const,
   /** After crash reclaim: second-wave ride to higher peak. */
   secondWavePreference: ["second_wave_reentry"] as const,

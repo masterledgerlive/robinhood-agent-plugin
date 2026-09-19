@@ -35,6 +35,7 @@ export type {
   WhatIfPath,
   SurfLearnResult,
   NextMove,
+  CascadeMoveBatch,
   WhisperCard,
   RedDayResult,
   RedDayPhase,
@@ -74,7 +75,15 @@ export { SuccessLedger, LedgerError } from "./ledger.js";
 export { injectBrain, costAwareScore, reRankWhatIfByTransmissionCost, meanRtBySymbol, BRAIN } from "./brain.js";
 export { watch15m } from "./watcher.js";
 export { runSurfLearn, whatIfPnlUsd, surfUniverseQuotes } from "./surf-learn.js";
-export { recommendNextMove } from "./surf-act.js";
+export { recommendNextMove, recommendCascadeMoves } from "./surf-act.js";
+export {
+  collectBrokerAlertSpecs,
+  prioritizeCascadeAlerts,
+  syncMathAlertsToBroker,
+  mcpAlertBridge,
+  firedCascadeTriggers,
+} from "./alert-bridge.js";
+export type { AlertSyncResult, AlertBridgePort } from "./alert-bridge.js";
 export { redDayTrigger, evaluateRedDay, redDayAllowsTroughReentry } from "./red-day.js";
 export {
   climbFromSessionOpen,
@@ -87,6 +96,9 @@ export type { GreenOnlyCandidate } from "./green-only.js";
 export { assertWhisper, loadWhispers, loadWhisperFile, whisperCardSchema, WhisperError } from "./whisper.js";
 export {
   AGENTIC_MOVE_EQ,
+  asPct,
+  cascadeJumpOutThreshold,
+  cascadeJumpOutMark,
   takeProfitPct,
   stopPct,
   takeProfitMark,

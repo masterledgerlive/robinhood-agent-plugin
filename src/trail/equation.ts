@@ -11,7 +11,7 @@ import { quoteSpread, rtSpread } from "./gates.js";
 import type { Quote, WhisperCard, WhisperRouteHint } from "./types.js";
 
 /**
- * v4 equation knobs — Wilder RSI rollback + stale-profit cascade (agentless).
+ * v5 equation knobs — %-hit cascade jump-out (agentless, no LLM).
  *
  * Locked TP/stop floors stay on DIVIDEND_15M (Game 2026-09-18):
  *   take_profit_pct = max(1.2%, 1.5 × one_way_spread)
@@ -22,14 +22,16 @@ import type { Quote, WhisperCard, WhisperRouteHint } from "./types.js";
  * higherPeak      = localHigh × (1 + higherPeakExtension)
  * second_wave     = hardPullback ∧ reclaiming → ride toward higherPeak
  * cascade_exit    = trick_out|crash_start
- *                 ∨ edge ≥ TP
- *                 ∨ (edge ≥ max(micro, liveEdge×RT) ∧ (stale ∨ rsiLeaveOB ∨ failedPeak))
+ *                 ∨ edgePct ≥ jumpOutPct   ← jump out as soon as % hit
+ *                 ∨ edgePct ≥ tpPct
+ *                 ∨ (edgePct ≥ earlyMinPct ∧ (stale ∨ rsiLeaveOB ∨ failedPeak))
+ * All cascade intermediates compare as percentages (edgePct, jumpOutPct, tpPct).
  * cascade_dest    = healthy amp near support (wave low) — not cheapest absolute price
  * rsi             = Wilder(period) on quote.closes; rollingDown = leave overbought
  * credit_discipline: quiet watch = 0 credits; agent step-in only on alert
  */
 export const AGENTIC_MOVE_EQ = {
-  id: "AGENTIC_MOVE_EQ_v4",
+  id: "AGENTIC_MOVE_EQ_v5",
   /** Sleeve take-profit floor (DIVIDEND_15M: 1.2%). */
   takeProfitFloorPct: 0.012,
   /** TP as multiple of one-way spread (DIVIDEND_15M: 1.5×). */
@@ -80,8 +82,14 @@ export const AGENTIC_MOVE_EQ = {
   /** Prefer names sitting at the wave low (near support) — "lowest promising". */
   primeSupportWeight: 0.45,
   /**
-   * Early cascade rotate (DIVIDEND: unrealized ≥ edge → next path).
-   * Floor so a tiny print still rotates when stale / RSI / failed peak confirms.
+   * Cascade jump-out floor as a fraction (0.3% = 0.003).
+   * Compared as percentages end-to-end; fire the instant edgePct ≥ jumpOutPct.
+   * No stale / RSI / failed-peak wait — pure math so Robinhood alerts can act.
+   */
+  cascadeJumpOutPct: 0.003,
+  /**
+   * Legacy alias of cascadeJumpOutPct (micro floor before RT multiple).
+   * Prefer cascadeJumpOutPct in new code.
    */
   cascadeMicroProfitPct: 0.003,
   /** Wave amplitude below this + stall ⇒ stale. */
@@ -108,6 +116,39 @@ export const AGENTIC_MOVE_EQ = {
 } as const;
 
 export type AgenticMoveEq = typeof AGENTIC_MOVE_EQ;
+
+/** Fraction → display percentage (0.003 → 0.3). Cascade math compares in pct space. */
+export function asPct(fraction: number): number {
+  return fraction * 100;
+}
+
+/**
+ * Jump-out threshold as a fraction: max(cascadeJumpOutPct, liveEdge×RT).
+ * Callers should compare edgePct ≥ asPct(cascadeJumpOutThreshold(...)).
+ */
+export function cascadeJumpOutThreshold(
+  oneWayOrRt: { rt: number } | { oneWay: number },
+  eq: AgenticMoveEq = AGENTIC_MOVE_EQ,
+): number {
+  const rt =
+    "rt" in oneWayOrRt
+      ? oneWayOrRt.rt
+      : Number.isFinite(oneWayOrRt.oneWay)
+        ? 2 * oneWayOrRt.oneWay
+        : NaN;
+  const floor = eq.cascadeJumpOutPct;
+  if (!(Number.isFinite(rt) && rt > 0)) return floor;
+  return Math.max(floor, eq.liveEdgeMultipleOfRt * rt);
+}
+
+/** Absolute mark where cascade jump-out % is hit from cost basis. */
+export function cascadeJumpOutMark(
+  basis: number,
+  rt: number,
+  eq: AgenticMoveEq = AGENTIC_MOVE_EQ,
+): number {
+  return basis * (1 + cascadeJumpOutThreshold({ rt }, eq));
+}
 
 export function takeProfitPct(oneWaySpread: number, eq: AgenticMoveEq = AGENTIC_MOVE_EQ): number {
   if (!(oneWaySpread >= 0) || !Number.isFinite(oneWaySpread)) return eq.takeProfitFloorPct;

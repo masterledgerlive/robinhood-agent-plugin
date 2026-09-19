@@ -36,12 +36,12 @@ Paper what-if is **not** a broker fill. Ledger `kind: paper_surf` is separate fr
 
 | Rule | DIVIDEND_15M |
 | --- | --- |
-| Max new working entries / day | **up to 8** (prefer 1 per 15m slot if gates clear) |
-| Max working seats | **4** (banks excluded) |
+| Max new working entries / day | **up to 240** (prefer up to **10** cascade rotates per 15m slot) |
+| Max working seats | **8** (banks excluded) |
 | Spread hard | **≤1.2%** (prefer ≤0.8%) |
 | Edge | Expected 15m move ≥ **1.5×** RT spread (prefer 2×) |
 | Entry | SURF_ACT: park-to-banks first; else one seat (trough → mean-revert → momentum). Momentum live after paper ≥**50% / ≥3** trials; graduate prefer ≥55% / ≥10 |
-| Exit / dividend | Sleeve TP at max(1.2%, 1.5×spread) or rotate into next top what-if within same 15m if unrealized ≥ edge; stop max(2%, 2×spread) |
+| Exit / dividend | Sleeve TP at max(1.2%, 1.5×spread) **or jump out when edgePct ≥ jumpOutPct** (max 0.3%, 1.5×RT) — sync RH `cascade_jump_out` alert; stop max(2%, 2×spread) |
 | Soft halt | Day realized ≤ **−$2.00** |
 | Expectancy halt | **8** losing working RTs |
 | Bank sleeve | Still Game-authorize only |
@@ -49,20 +49,19 @@ Paper what-if is **not** a broker fill. Ledger `kind: paper_surf` is separate fr
 
 If BP < $2: **learn only** — no forced last-dollar trades. Free BP via Game-authorized working sleeve (leave dust) or deposit.
 
-### C) SURF_ACT (one recommended move per 15m — never a place)
+### C) SURF_ACT (up to 10 cascade rotates per 15m — never a place from watcher)
 
 Priority is fixed math:
 
 1. **RED_DAY fired / defend** → `red_day_exit` (working to dust; banks hold)
 2. **RED_DAY green_shelter** → `green_only_park` (tokens still green vs session open until bottoms)
 3. **RED_DAY reenter** → `trough_bounce_15m` agentless recommend when bottoms form
-4. **Accumulate** → `park_to_near` then `park_to_chip` when working profit clears the park gate (leave dust)
-5. **Enter one seat** → `trough_bounce_15m` then `mean_revert_15m` then unlocked `momentum_15m`
-6. Else **hold / hold_bank** (`live=false`) — banks stay; SURF_LEARN keeps ranking
+4. **%-hit / peak cascade** → `trick_out_at_peak` batch (`CASCADE MOVES`, capacity 10)
+5. **Accumulate** → `park_to_near` then `park_to_chip` when working profit clears the park gate (leave dust)
+6. **Enter seats** → `trough_bounce_15m` then `mean_revert_15m` then unlocked `momentum_15m`
+7. Else **hold / hold_bank** (`live=false`) — banks stay; SURF_LEARN keeps ranking
 
-Lesson 2026-09-19: while RED_DAY is active, soft-halt only **chase** (`momentum` / `mean_revert`). Do **not** block trough re-entry forever — green-only then bottoms then enter, without agents.
-
-TRAIL VIEW prints `NEXT MOVE`. The watcher still does not preview or place. Agents/humans step in on `WATCH   alert` and follow review-before-place.
+Sync broker alert specs with `syncMathAlertsToBroker` so Robinhood notifies on jump-out % without Cursor LLM. Watcher still does not preview or place.
 
 ## Dividend definition
 

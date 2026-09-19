@@ -18,8 +18,9 @@ function loadExample(name: string): PortfolioSnapshot {
 }
 
 describe("peak + primed rotate + second wave", () => {
-  it("exports v4 peak / second-wave / Wilder RSI / credit knobs", () => {
-    assert.equal(AGENTIC_MOVE_EQ.id, "AGENTIC_MOVE_EQ_v4");
+  it("exports v5 peak / %-hit cascade / Wilder RSI / credit knobs", () => {
+    assert.equal(AGENTIC_MOVE_EQ.id, "AGENTIC_MOVE_EQ_v5");
+    assert.equal(AGENTIC_MOVE_EQ.cascadeJumpOutPct, 0.003);
     assert.equal(AGENTIC_MOVE_EQ.peakArmProximity, 0.985);
     assert.equal(AGENTIC_MOVE_EQ.higherPeakExtension, 0.015);
     assert.equal(AGENTIC_MOVE_EQ.takeProfitFloorPct, 0.012);

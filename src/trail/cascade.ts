@@ -1,24 +1,25 @@
 /**
  * Profit cascade — agentless, locked to DIVIDEND_15M + peak + Wilder RSI.
  *
- * Exit (do not sit / do not ride back down):
+ * Exit (jump out as soon as % hit — do not sit / do not ride back down):
  *   1. Classic peak trick_out | crash_start
- *   2. Full sleeve TP: edge ≥ max(1.2%, 1.5× one-way spread)
- *   3. Early cascade: edge ≥ max(micro, liveEdge×RT) AND
- *        (stale wave | RSI left overbought | failed peak break with stall)
+ *   2. Jump-out: edgePct ≥ jumpOutPct (= max(0.3%, 1.5×RT) as %) — no confirm wait
+ *   3. Full sleeve TP: edgePct ≥ tpPct
+ *   4. Soft confirm path: edgePct ≥ earlyMinPct AND (stale | RSI leave-OB | failed peak)
  *
- * Failed peak break = waveform showed the top (armed) but mark did not break
- * past localHigh, then stall/pullback — expect drop toward the support line
- * already on the tape (trough / session open).
+ * All cascade intermediates cascade into percentages (edgePct / jumpOutPct / tpPct).
+ * Destination ("lowest promising"): near support + healthy amp — not cheapest absolute.
  *
- * Destination ("lowest promising"):
- *   Near the wave's low (support), with healthy volatile amplitude —
- *   NOT "cheapest absolute price".
- *
- * Never invents marks, fills, or PnL. Never places.
+ * Never invents marks, fills, or PnL. Never places — sync brokerAlerts so RH can act.
  */
 
-import { AGENTIC_MOVE_EQ, takeProfitPct, type AgenticMoveEq } from "./equation.js";
+import {
+  AGENTIC_MOVE_EQ,
+  asPct,
+  cascadeJumpOutThreshold,
+  takeProfitPct,
+  type AgenticMoveEq,
+} from "./equation.js";
 import {
   baseSymbol,
   findQuote,
@@ -39,7 +40,14 @@ import type { PortfolioSnapshot, Quote, Sleeve, TroughWindow } from "./types.js"
 export type CascadeExitState = {
   symbol: string;
   fire: boolean;
+  /** Unrealized edge as fraction (mark−cost)/cost. */
   edge: number | null;
+  /** Same edge as percentage points (2.5 = 2.5%). */
+  edgePct: number | null;
+  /** Jump-out threshold as percentage points. */
+  jumpOutPct: number;
+  /** True the instant edgePct ≥ jumpOutPct (no stale/RSI wait). */
+  jumpOutHit: boolean;
   fullTakeProfit: boolean;
   earlyCascade: boolean;
   staleWave: boolean;
@@ -58,6 +66,8 @@ export type CascadeDestination = {
   score: number;
   mark: number;
   amplitude: number;
+  /** Amplitude as percentage points. */
+  amplitudePct: number;
   volatileHealthy: boolean;
   nearSupport: boolean;
   supportMark: number | null;
@@ -79,10 +89,16 @@ export function supportMarkOf(quote: Quote, trough?: TroughWindow): number | nul
 }
 
 function sleeveEdge(sleeve: Sleeve, quote: Quote): number | null {
-  const cost = sleeve.costBasisUsd;
   const mark = sleeve.markUsd ?? quote.mark;
-  if (cost === undefined || !(cost > 0) || !(mark > 0)) return null;
-  return (mark - cost) / cost;
+  if (!(mark > 0)) return null;
+  const cost = sleeve.costBasisUsd;
+  if (cost !== undefined && cost > 0) return (mark - cost) / cost;
+  // Live transfers/rewards often lack direct cost — fall back to session open so
+  // %-hit jump-out still arms (never invent a fill; open is already on the tape).
+  if (quote.sessionOpen !== undefined && quote.sessionOpen > 0) {
+    return (mark - quote.sessionOpen) / quote.sessionOpen;
+  }
+  return null;
 }
 
 /** Stale = flat/fade tape, or armed ride that lost amplitude and stalled. */
@@ -122,6 +138,7 @@ function failedPeakBreak(peak: PeakState | null, eq: AgenticMoveEq): boolean {
 
 /**
  * Working-seat cascade exit. Agents optional.
+ * Jump out the instant edgePct ≥ jumpOutPct — pure math for Robinhood triggers.
  */
 export function cascadeExitOf(
   snapshot: PortfolioSnapshot,
@@ -138,13 +155,14 @@ export function cascadeExitOf(
   const rsi = tapeRsiOf(snapshot, symbol, eq);
   const support = supportMarkOf(quote, trough);
   const edge = sleeve ? sleeveEdge(sleeve, quote) : null;
+  const edgePct = edge === null ? null : asPct(edge);
   const oneWay = quoteSpread(quote);
   const tp = takeProfitPct(oneWay, eq);
+  const tpPct = asPct(tp);
   const rt = rtSpread(quote);
-  const minEarly =
-    Number.isFinite(rt) && rt > 0
-      ? Math.max(eq.cascadeMicroProfitPct, eq.liveEdgeMultipleOfRt * rt)
-      : eq.cascadeMicroProfitPct;
+  const jumpOutFrac = cascadeJumpOutThreshold({ rt }, eq);
+  const jumpOutPct = asPct(jumpOutFrac);
+  const minEarly = jumpOutFrac;
 
   const fullTakeProfit = edge !== null && edge + 1e-12 >= tp;
   const staleWave = isStaleWave(wave, peak, eq);
@@ -157,21 +175,23 @@ export function cascadeExitOf(
 
   const classicPeak = peak?.mode === "trick_out" || peak?.mode === "crash_start";
 
-  // Early cascade: enough edge to clear RT/micro AND a real top/stale/RSI signal.
-  // Does NOT fire on peak_armed + tiny profit alone (still riding).
-  // Does NOT fire on full TP alone — that is park_to_near / sleeve TP (DIVIDEND).
+  // %-hit jump-out: fire the instant edgePct ≥ jumpOutPct. No stale/RSI/failedPeak wait.
+  const jumpOutHit =
+    edge !== null && edge > 0 && edgePct !== null && edgePct + 1e-12 >= jumpOutPct;
+
+  // Soft confirm path (edge may already equal jump-out; kept when tape confirms early).
   const signal = staleWave || rsiRollingDown || failed;
   const earlyCascade =
     edge !== null && edge + 1e-12 >= minEarly && edge > 0 && signal;
 
-  const fire = classicPeak || earlyCascade;
+  const fire = classicPeak || jumpOutHit || fullTakeProfit || earlyCascade;
 
   const equation =
     `cascade_exit=${baseSymbol(quote.symbol)} fire=${fire} ` +
-    `edge=${edge === null ? "n/a" : `${(edge * 100).toFixed(3)}%`} ` +
-    `tp=${(tp * 100).toFixed(2)}% earlyMin=${(minEarly * 100).toFixed(3)}% ` +
-    `fullTP=${fullTakeProfit} early=${earlyCascade} stale=${staleWave} ` +
-    `failedPeak=${failed} rsiDown=${rsiRollingDown} peakTop=${peakTopShown} ` +
+    `edgePct=${edgePct === null ? "n/a" : `${edgePct.toFixed(3)}%`} ` +
+    `jumpOutPct=${jumpOutPct.toFixed(3)}% jumpHit=${jumpOutHit} ` +
+    `tpPct=${tpPct.toFixed(2)}% fullTP=${fullTakeProfit} early=${earlyCascade} ` +
+    `stale=${staleWave} failedPeak=${failed} rsiDown=${rsiRollingDown} peakTop=${peakTopShown} ` +
     `support=${support === null ? "n/a" : support.toFixed(6)} ` +
     `peakMode=${peak?.mode ?? "n/a"} wave=${wave?.kind ?? "none"}`;
 
@@ -179,6 +199,9 @@ export function cascadeExitOf(
     symbol: quote.symbol,
     fire,
     edge,
+    edgePct,
+    jumpOutPct,
+    jumpOutHit,
     fullTakeProfit,
     earlyCascade,
     staleWave,
@@ -242,6 +265,7 @@ export function rankCascadeDestinations(
     const rsi = tapeRsiOf(snapshot, base, eq);
 
     const amp = wave?.amplitude ?? 0;
+    const ampPct = asPct(amp);
     const volatileHealthy =
       amp + 1e-12 >= eq.volatileHealthyMinAmp &&
       (wave?.kind === "trough_reclaim" ||
@@ -282,7 +306,7 @@ export function rankCascadeDestinations(
 
     const equation =
       `cascade_dest=${base} score=${score.toFixed(4)} mark=${quote.mark.toFixed(6)} ` +
-      `amp=${(amp * 100).toFixed(2)}% healthy=${volatileHealthy} nearSupport=${nearSupport} ` +
+      `ampPct=${ampPct.toFixed(2)}% healthy=${volatileHealthy} nearSupport=${nearSupport} ` +
       `support=${support === null ? "n/a" : support.toFixed(6)} ` +
       `wave=${wave?.kind ?? "none"} peak=${peak?.mode ?? "n/a"}`;
 
@@ -291,6 +315,7 @@ export function rankCascadeDestinations(
       score,
       mark: quote.mark,
       amplitude: amp,
+      amplitudePct: ampPct,
       volatileHealthy,
       nearSupport,
       supportMark: support,
