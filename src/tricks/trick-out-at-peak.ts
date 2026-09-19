@@ -1,3 +1,4 @@
+import { cascadeExitOf, topCascadeDestination } from "../trail/cascade.js";
 import {
   baseSymbol,
   isAgenticAccount,
@@ -11,13 +12,14 @@ import type { TrickEvaluation } from "../trail/types.js";
 import type { Trick } from "./types.js";
 
 /**
- * Uphill ride → trick out at absolute local peak (or first-crash pullback),
- * leave dust, rotate toward the top primed token. Never flattens. Never places.
+ * Peak / stale-profit / RSI leave-overbought cascade out.
+ * Leave dust; rotate toward lowest promising volatile (near support).
+ * Never flattens. Never places. Agents optional.
  */
 export const trickOutAtPeak: Trick = {
   id: "trick_out_at_peak",
   whenItMayFire:
-    "Working seat peakProximity/phase arms and stall or pullback fires (or hard first-crash pullback). Leave dust. Destination = top primed token by wave+climb math.",
+    "Working seat: peak stall/pullback, failed peak break, stale wave with edge, or Wilder RSI leave-overbought. Leave dust. Destination = cascade near-support volatile.",
   paramsSchema: {
     type: "object",
     additionalProperties: false,
@@ -26,6 +28,9 @@ export const trickOutAtPeak: Trick = {
       peakArmPhase: { type: "number", description: "Default 0.85" },
       peakPullbackArm: { type: "number", description: "Default 0.008" },
       peakHardPullback: { type: "number", description: "Default 0.02" },
+      cascadeMicroProfitPct: { type: "number", description: "Default 0.003" },
+      rsiOverbought: { type: "number", description: "Default 70" },
+      rsiPeriod: { type: "number", description: "Default 14" },
     },
   },
   evaluate(snapshot): TrickEvaluation {
@@ -38,6 +43,11 @@ export const trickOutAtPeak: Trick = {
 
     const fired: Array<{ symbol: string; reason: string }> = [];
     for (const sleeve of seats) {
+      const cascade = cascadeExitOf(snapshot, sleeve.symbol);
+      if (cascade?.fire) {
+        fired.push({ symbol: sleeve.symbol, reason: cascade.equation });
+        continue;
+      }
       const peak = peakOf(snapshot, sleeve.symbol);
       if (!peak) continue;
       if (peak.mode === "trick_out" || peak.mode === "crash_start") {
@@ -52,24 +62,25 @@ export const trickOutAtPeak: Trick = {
       if (armed.length > 0) {
         return {
           eligible: false,
-          reason: `Peak armed on ${armed.map((p) => baseSymbol(p.symbol)).join(", ")} — ride until stall/pullback; not trick-out yet`,
+          reason: `Peak armed on ${armed.map((p) => baseSymbol(p.symbol)).join(", ")} — ride until stall/pullback/RSI leave-OB; not trick-out yet`,
         };
       }
       return {
         eligible: false,
-        reason: "No working seat at peak trick-out or first-crash pullback",
+        reason: "No working seat at peak/stale-profit/RSI cascade exit",
       };
     }
 
     const from = fired[0]!;
-    const dest = topPrimedToken(snapshot, { excludeBases: [from.symbol] });
+    const cascadeDest = topCascadeDestination(snapshot, { excludeBases: [from.symbol] });
+    const dest = cascadeDest ?? topPrimedToken(snapshot, { excludeBases: [from.symbol] });
     const destText = dest
-      ? ` → prime ${baseSymbol(dest.symbol)} (score ${dest.score.toFixed(4)})`
-      : " → hold cash/banks until a primed destination scores > 0";
+      ? ` → cascade ${baseSymbol(dest.symbol)} (score ${dest.score.toFixed(4)})`
+      : " → deploy buying power when a near-support volatile destination scores > 0";
 
     return {
       eligible: true,
-      reason: `Trick out ${baseSymbol(from.symbol)} at peak/first-crash; leave dust${destText}. No place.`,
+      reason: `Cascade out ${baseSymbol(from.symbol)} (peak/stale/RSI); leave dust${destText}. No place.`,
       symbol: from.symbol,
     };
   },

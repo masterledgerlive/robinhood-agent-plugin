@@ -7,6 +7,11 @@
  */
 
 import {
+  cascadeExitOf,
+  idleBuyingPowerPressure,
+  topCascadeDestination,
+} from "./cascade.js";
+import {
   AGENTIC_MOVE_EQ,
   edgeClearsPark,
   formatSleeveExitEquation,
@@ -18,7 +23,6 @@ import {
   dustFloorUsd,
   findQuote,
   findSleeve,
-  isBankSymbol,
   isFilDisplayOnly,
   maxTakeWithoutFlatten,
   workingSeats,
@@ -52,6 +56,7 @@ function brokerSpecs(
   tp?: number,
   stop?: number,
   peakPullback?: number,
+  support?: number,
 ): TriggerBrokerAlertSpec[] {
   const specs: TriggerBrokerAlertSpec[] = [];
   const bare = baseSymbol(symbol);
@@ -80,6 +85,15 @@ function brokerSpecs(
       condition_type: "price_below",
       threshold: peakPullback.toFixed(8).replace(/\.?0+$/, ""),
       purpose: "peak_pullback",
+    });
+  }
+  if (support !== undefined && Number.isFinite(support)) {
+    specs.push({
+      symbol: bare,
+      asset_class: "crypto",
+      condition_type: "price_below",
+      threshold: support.toFixed(8).replace(/\.?0+$/, ""),
+      purpose: "support",
     });
   }
   return specs;
@@ -171,12 +185,30 @@ function armWorking(
 
   const peak = peakOf(snapshot, symbol, eq);
   const peakAlert = peakPullbackAlertMark(snapshot, symbol, eq);
+  const cascadeExit = cascadeExitOf(snapshot, symbol, eq);
   if (peak) {
     equation += `; ${peak.equation}`;
     if (peak.mode === "trick_out" || peak.mode === "crash_start") {
       fired = true;
       armed = true;
     } else if (peak.mode === "peak_armed" || peak.mode === "ride") {
+      armed = true;
+    }
+  }
+  if (cascadeExit) {
+    equation += `; ${cascadeExit.equation}`;
+    if (cascadeExit.fire) {
+      fired = true;
+      armed = true;
+      // Micro / stale / RSI cascade counts as park-eligible when still green.
+      if (cascadeExit.edge !== null && cascadeExit.edge > 0 && take > 0) {
+        parkEligible = true;
+      }
+    } else if (
+      cascadeExit.peakTopShown ||
+      cascadeExit.staleWave ||
+      cascadeExit.rsiRollingDown
+    ) {
       armed = true;
     }
   }
@@ -192,7 +224,7 @@ function armWorking(
     : whereFromWave(wave, "working", cascade.route, redDay);
   if (redDay?.active && take > 0) {
     where = "exit_to_dust";
-  } else if (peak?.mode === "trick_out" || peak?.mode === "crash_start") {
+  } else if (cascadeExit?.fire || peak?.mode === "trick_out" || peak?.mode === "crash_start") {
     where = "trick_out_at_peak";
   } else if (peak?.mode === "second_wave") {
     // Already in the seat — ride reclaim toward higherPeak (do not re-enter).
@@ -209,6 +241,9 @@ function armWorking(
     when: {
       ...(tpMark !== undefined ? { takeProfitMark: tpMark } : {}),
       ...(stopMarkValue !== undefined ? { stopMark: stopMarkValue } : {}),
+      ...(cascadeExit?.supportMark !== undefined && cascadeExit.supportMark !== null
+        ? { supportMark: cascadeExit.supportMark }
+        : {}),
       parkEligible,
       leaveDustUsd: leaveDust,
       equation,
@@ -219,7 +254,13 @@ function armWorking(
       sources: cascade.sources,
       equation: cascade.equation,
     },
-    brokerAlerts: brokerSpecs(sleeve.symbol, tpMark, stopMarkValue, peakAlert ?? undefined),
+    brokerAlerts: brokerSpecs(
+      sleeve.symbol,
+      tpMark,
+      stopMarkValue,
+      peakAlert ?? undefined,
+      cascadeExit?.supportMark ?? undefined,
+    ),
     agentRequired: false,
     ...(wave ? { wave } : {}),
   };
@@ -420,12 +461,14 @@ export function armTokenTriggers(
   }
 
   const actionable = tokens.filter((t) => t.state === "fired" || (t.state === "armed" && t.where !== "hold_bank" && t.where !== "hold_dust" && t.where !== "none" && t.where !== "ride_peak"));
+  const cascadeDest = topCascadeDestination(snapshot);
   const primed = topPrimedToken(snapshot);
   const next = pickWaveNext(
     tokens,
     workingSeats(snapshot).length > 0,
     redDay,
-    primed?.symbol,
+    cascadeDest?.symbol ?? primed?.symbol,
+    idleBuyingPowerPressure(snapshot),
   );
 
   return {
@@ -444,6 +487,7 @@ function pickWaveNext(
   hasWorking: boolean,
   redDay: RedDayResult | undefined,
   primedSymbol?: string,
+  idleBuyingPower?: boolean,
 ): TokenTriggerPlan["next"] {
   const redDayActive = redDay?.active === true;
   if (redDayActive) {
@@ -483,11 +527,11 @@ function pickWaveNext(
     (t) => t.where === "trick_out_at_peak" && (t.state === "fired" || t.state === "armed"),
   );
   if (trickOut) {
-    const dest = primedSymbol ? ` → prime ${baseSymbol(primedSymbol)}` : "";
+    const dest = primedSymbol ? ` → cascade ${baseSymbol(primedSymbol)}` : "";
     return {
       symbol: trickOut.symbol,
       where: trickOut.where,
-      reason: `Peak/first-crash trick-out on ${baseSymbol(trickOut.symbol)}${dest}. Leave dust. Agents optional.`,
+      reason: `Stale-profit/peak/RSI cascade out on ${baseSymbol(trickOut.symbol)}${dest}. Leave dust. Agents optional.`,
     };
   }
   const park = tokens.find((t) => t.where === "park_to_near" && t.when.parkEligible);
@@ -511,7 +555,26 @@ function pickWaveNext(
       return {
         symbol: hit.symbol,
         where: hit.where,
-        reason: `Wave ${where} armed on ${baseSymbol(hit.symbol)}. Agents optional.`,
+        reason: `Wave ${where} armed on ${baseSymbol(hit.symbol)}${idleBuyingPower ? " — deploy idle buying power" : ""}. Agents optional.`,
+      };
+    }
+  }
+  // Idle buying power: prefer the primed/cascade destination over sitting in cash.
+  if (idleBuyingPower && primedSymbol) {
+    const primedHit = tokens.find(
+      (t) =>
+        baseSymbol(t.symbol) === baseSymbol(primedSymbol) &&
+        (t.where === "enter_trough" ||
+          t.where === "enter_mean_revert" ||
+          t.where === "enter_momentum" ||
+          t.where === "second_wave_reentry" ||
+          t.where === "buy_trough"),
+    );
+    if (primedHit && (primedHit.state === "fired" || primedHit.state === "armed")) {
+      return {
+        symbol: primedHit.symbol,
+        where: primedHit.where,
+        reason: `Idle buying power — cascade into ${baseSymbol(primedHit.symbol)}. Do not sit. Agents optional.`,
       };
     }
   }
@@ -520,12 +583,12 @@ function pickWaveNext(
     return {
       symbol: ride.symbol,
       where: ride.where,
-      reason: `Ride uphill on ${baseSymbol(ride.symbol)} — peak armed/prox high; wait stall/pullback before trick-out.`,
+      reason: `Ride uphill on ${baseSymbol(ride.symbol)} — peak armed/prox high; exit on stall/RSI/stale profit.`,
     };
   }
   if (!hasWorking) {
     const bank = tokens.find((t) => t.role === "bank" && baseSymbol(t.symbol) === "NEAR");
-    if (bank) {
+    if (bank && !idleBuyingPower) {
       return {
         symbol: bank.symbol,
         where: "hold_bank",
@@ -536,6 +599,8 @@ function pickWaveNext(
   return {
     symbol: tokens[0]?.symbol ?? "NONE",
     where: "none",
-    reason: "No wave trigger. Wait for next 15m marks.",
+    reason: idleBuyingPower
+      ? "Buying power idle — wait next 15m for volatile cascade destination."
+      : "No wave trigger. Wait for next 15m marks.",
   };
 }

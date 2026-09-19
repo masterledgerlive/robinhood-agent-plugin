@@ -28,6 +28,18 @@ export type Quote = {
    * Prefer broker/session high when available; else trough.recentHigh or mark.
    */
   sessionHigh?: number;
+  /**
+   * Chronological closes (oldest → newest) for Wilder RSI.
+   * Need rsiPeriod+1 samples. Omit if unknown — RSI stays null (never invent bars).
+   */
+  closes?: number[];
+  /**
+   * Optional broker-computed RSI. Used only when `closes` are absent.
+   * Prefer computing from `closes` when both are present.
+   */
+  rsi?: number;
+  /** Prior-bar broker RSI for leave-overbought detection. */
+  rsiPrev?: number;
 };
 
 export type Sleeve = {
@@ -283,7 +295,7 @@ export type TriggerBrokerAlertSpec = {
   asset_class: "crypto" | "equity";
   condition_type: "price_above" | "price_below";
   threshold: string;
-  purpose: "take_profit" | "stop" | "trough_reclaim" | "peak_pullback";
+  purpose: "take_profit" | "stop" | "trough_reclaim" | "peak_pullback" | "support";
 };
 
 export type TokenTrigger = {
@@ -295,6 +307,8 @@ export type TokenTrigger = {
     takeProfitMark?: number;
     stopMark?: number;
     troughReclaimMark?: number;
+    /** Support line already on the tape (trough / session open). */
+    supportMark?: number;
     parkEligible: boolean;
     leaveDustUsd?: number;
     equation: string;

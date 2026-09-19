@@ -1,11 +1,12 @@
 /**
- * Prime-token ranking — where to rotate after a peak trick-out,
+ * Prime-token ranking — where to rotate after a peak / stale-profit cascade,
  * and which names are primed for second-wave reclaim → higher peak.
  *
- * Pure wave + climb + gate math. Prefer tokens still climbing or in
- * second_wave reclaim. Banks stay banks (NEAR savings).
+ * Pure wave + climb + gate + volatility math. Prefer lowest promising
+ * volatile tokens with healthy amplitude (cascade). Banks stay banks.
  */
 
+import { rankCascadeDestinations } from "./cascade.js";
 import { AGENTIC_MOVE_EQ, type AgenticMoveEq } from "./equation.js";
 import { baseSymbol, findQuote, isBankSymbol, isFilDisplayOnly, quoteSpread } from "./gates.js";
 import { peakOf, type PeakState } from "./peak.js";
@@ -29,8 +30,9 @@ function climbOf(snapshot: PortfolioSnapshot, symbol: string): number | null {
 }
 
 /**
- * Rank primed destinations for the next rotate / second-wave seat.
+ * Rank primed destinations for the next rotate / second-wave / cascade seat.
  * Excludes FIL display-only and optional excludeBases (e.g. the seat we just exited).
+ * Blends climb/wave gates with cascade "lowest promising volatile" preference.
  */
 export function rankPrimedTokens(
   snapshot: PortfolioSnapshot,
@@ -43,6 +45,10 @@ export function rankPrimedTokens(
   const eq = opts?.eq ?? AGENTIC_MOVE_EQ;
   const exclude = new Set((opts?.excludeBases ?? []).map((s) => baseSymbol(s)));
   const includeBanks = opts?.includeBanks === true;
+
+  const cascadeBoost = new Map(
+    rankCascadeDestinations(snapshot, opts).map((c) => [baseSymbol(c.symbol), c]),
+  );
 
   const bases = new Set<string>();
   for (const q of snapshot.quotes) bases.add(baseSymbol(q.symbol));
@@ -60,6 +66,7 @@ export function rankPrimedTokens(
     const peak = peakOf(snapshot, base, eq);
     const climb = climbOf(snapshot, base);
     const spread = quoteSpread(quote);
+    const cascade = cascadeBoost.get(base);
 
     const climbTerm = climb !== null && climb > 0 ? climb : 0;
     const waveTerm =
@@ -80,10 +87,13 @@ export function rankPrimedTokens(
       secondBoost = eq.secondWavePrimeBoost;
     }
 
+    const cascadeTerm = cascade && cascade.score > 0 ? cascade.score * 0.55 : 0;
+
     const score =
       eq.primeClimbWeight * climbTerm +
       eq.primeWaveWeight * waveTerm +
       eq.primeGateWeight * gateTerm +
+      cascadeTerm +
       secondBoost -
       peakPenalty;
 
@@ -92,6 +102,7 @@ export function rankPrimedTokens(
       `climb=${climb === null ? "n/a" : `${(climb * 100).toFixed(3)}%`} ` +
       `wave=${wave?.kind ?? "none"}@${wave ? (wave.amplitude * 100).toFixed(2) : "0"}% ` +
       `peakMode=${peak?.mode ?? "n/a"} higherPeak=${peak ? peak.higherPeak.toFixed(6) : "n/a"} ` +
+      `cascade=${cascade ? cascade.score.toFixed(4) : "0"} ` +
       `spread=${(spread * 100).toFixed(3)}%`;
 
     out.push({
@@ -105,7 +116,10 @@ export function rankPrimedTokens(
     });
   }
 
-  return out.sort((a, b) => b.score - a.score);
+  return out.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.spread - b.spread;
+  });
 }
 
 /** Best primed destination, or null if none score positive. */
