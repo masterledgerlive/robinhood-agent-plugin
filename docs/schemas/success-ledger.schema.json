@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/masterledgerlive/robinhood-agent-plugin/schemas/success-ledger.json",
+  "title": "SuccessLedger",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["paths", "attempts", "alerts"],
+  "properties": {
+    "example": {
+      "type": "boolean",
+      "description": "Must be true for sample files so they are never treated as live fills"
+    },
+    "$comment": { "type": "string" },
+    "paths": { "type": "array" },
+    "attempts": { "type": "array" },
+    "alerts": { "type": "array" }
+  }
+}

@@ -22,7 +22,42 @@ export {
 } from "./capabilities/matcher.js";
 export type { CapabilityIndex, MatchedTool, ReviewPlacePair } from "./capabilities/matcher.js";
 export { formatMachineLog, formatMachineLogBlock, extractBrokerIds } from "./log/machine-log.js";
+export { formatTrailView, formatWatchMachineLog, watchToMachineLog } from "./log/trail-view.js";
 export { redactArgs, stableFingerprint } from "./log/redact.js";
+export {
+  EXAMPLE_AGENTIC_RHS,
+  BANK_ORDER,
+  FIL_MCP_DISPLAY_ONLY,
+  LOW_CAP_SLOW,
+  TRAIL_HORIZON_DEFAULT,
+  TRICK_IDS,
+  SuccessLedger,
+  LedgerError,
+  watch15m,
+  FixtureBroker,
+  assertSnapshot,
+  SnapshotError,
+  followPathSchema,
+  ledgerAttemptSchema,
+  portfolioSnapshotSchema,
+  successLedgerSchema,
+} from "./trail/index.js";
+export type {
+  FollowPath,
+  LedgerAttempt,
+  PortfolioSnapshot,
+  TrailBrokerPort,
+  TrickEvaluation,
+  WatchResult,
+} from "./trail/index.js";
+export {
+  TRICK_CATALOG,
+  listTricks,
+  getTrick,
+  evaluateTrick,
+  evaluateAll,
+} from "./tricks/index.js";
+export type { Trick } from "./tricks/index.js";
 export { RiskGuard, HaltError, RiskViolationError, policyFromEnv } from "./risk/guard.js";
 export { resolveTradingMode, assertToolAllowedInMode, PaperBlockedError } from "./mode/trading-mode.js";
 export {

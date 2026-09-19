@@ -169,3 +169,46 @@ HUMAN   No broker id, so no fill and no PnL. Ask the list-orders tool for the ti
 ```
 
 Tool names in these pictures match one live snapshot. Your session may differ. Discovery always wins.
+
+## 9. 15m trail watch (EXAMPLE)
+
+The trail watcher extends this ticker. It does not place. Quiet is the default.
+
+`WATCH → CANDIDATES → PATHS → TRICK RANKS → LAST ALERTS`
+
+```
+=== MACHINE LOG ===
+TIME    2026-09-18T17:00:00.000Z
+MODE    paper
+BUCKET  RISK
+INTENT  15m trail watch (deterministic; no place)
+TOOL    watch15m
+ARGS    {"example":true,"asOf":"2026-09-18T17:00:00.000Z","rhs_account_number":"…9826","candidate_count":0}
+RESULT  ok | quiet | 0 candidates
+ORDER   none
+FILL    none
+PNL     none (do not invent)
+HUMAN   Quiet book. No agent step-in. Cron/watcher only.
+=== END LOG ===
+```
+
+```
+=== TRAIL VIEW ===
+TIME    2026-09-18T17:00:00.000Z
+ACCOUNT rhs …9826 (Agentic)
+MODE    LOW_CAP_SLOW
+BUCKET  RISK
+WATCH   quiet
+HALT    soft=false expectancy=false
+CANDIDATES
+  none
+PATHS
+  example-trough-wld-15m     github_code        15m  trough_bounce_15m            rate n/a  trailing
+TRICK RANKS
+  trough_bounce_15m          rate n/a  attempts 0  wins 0  expectancy n/a
+LAST ALERTS
+  none
+=== END TRAIL ===
+```
+
+The blocks above are **EXAMPLE** dumps from `tests/fixtures/trail/`. They are not live fills. See [AGENTIC_TRAIL_MODEL.md](AGENTIC_TRAIL_MODEL.md).

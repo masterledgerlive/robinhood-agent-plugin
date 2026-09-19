@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/masterledgerlive/robinhood-agent-plugin/schemas/follow-path.json",
+  "title": "FollowPath",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "path_id",
+    "source",
+    "leader_system",
+    "horizon",
+    "tokens",
+    "trick_id",
+    "gates",
+    "success_rate",
+    "status"
+  ],
+  "properties": {
+    "path_id": { "type": "string" },
+    "source": {
+      "type": "string",
+      "enum": ["rh_mcp", "rh_mobile", "cascade_chatter", "external_agentic", "news", "github_code"]
+    },
+    "leader_system": { "type": "string" },
+    "horizon": { "type": "string", "enum": ["15m", "1h", "1d"], "default": "15m" },
+    "tokens": { "type": "array", "items": { "type": "string" } },
+    "trick_id": { "type": "string" },
+    "gates": { "type": "array", "items": { "type": "string" } },
+    "success_rate": {
+      "type": ["number", "null"],
+      "description": "wins/attempts; null when no closed attempts (do not invent)"
+    },
+    "status": { "type": "string", "enum": ["trailing", "paused", "graduated", "retired"] }
+  }
+}

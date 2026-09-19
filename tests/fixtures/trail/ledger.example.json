@@ -1,0 +1,30 @@
+{
+  "example": true,
+  "$comment": "EXAMPLE follow-paths. No live attempts — success_rate stays null. Do not invent win rates or PnL.",
+  "paths": [
+    {
+      "path_id": "example-trough-wld-15m",
+      "source": "github_code",
+      "leader_system": "RH Agentic rails (LOW_CAP_SLOW)",
+      "horizon": "15m",
+      "tokens": ["WLD-USD"],
+      "trick_id": "trough_bounce_15m",
+      "gates": ["LOW_CAP_SLOW"],
+      "success_rate": null,
+      "status": "trailing"
+    },
+    {
+      "path_id": "example-park-near",
+      "source": "rh_mcp",
+      "leader_system": "RH cascade park loop",
+      "horizon": "15m",
+      "tokens": ["NEAR-USD"],
+      "trick_id": "park_to_near",
+      "gates": ["LOW_CAP_SLOW", "never_flatten"],
+      "success_rate": null,
+      "status": "trailing"
+    }
+  ],
+  "attempts": [],
+  "alerts": []
+}

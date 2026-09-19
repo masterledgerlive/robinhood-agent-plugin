@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/masterledgerlive/robinhood-agent-plugin/schemas/portfolio-snapshot.json",
+  "title": "PortfolioSnapshot",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["asOf", "account", "mode", "sleeves", "quotes", "troughs", "day"],
+  "properties": {
+    "example": {
+      "type": "boolean",
+      "description": "Must be true for fixture / docs samples"
+    },
+    "$comment": { "type": "string" },
+    "asOf": { "type": "string", "format": "date-time" },
+    "account": {
+      "type": "object",
+      "required": ["rhsAccountNumber", "agenticAllowed"],
+      "properties": {
+        "rhsAccountNumber": {
+          "type": "string",
+          "description": "Example Game Agentic rhs 813839826 — not a secret"
+        },
+        "agenticAllowed": { "type": "boolean" }
+      }
+    },
+    "mode": { "const": "LOW_CAP_SLOW" },
+    "equityUsd": { "type": "number" },
+    "sleeves": { "type": "array" },
+    "quotes": { "type": "array" },
+    "troughs": { "type": "array" },
+    "day": {
+      "type": "object",
+      "required": ["date", "newWorkingEntries", "realizedPnlUsd", "losingWorkingRoundTrips"],
+      "properties": {
+        "date": { "type": "string" },
+        "newWorkingEntries": { "type": "integer", "minimum": 0 },
+        "realizedPnlUsd": { "type": ["number", "null"] },
+        "losingWorkingRoundTrips": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "authorize": { "type": "object" }
+  }
+}
