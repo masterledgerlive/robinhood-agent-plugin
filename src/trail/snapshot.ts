@@ -25,7 +25,9 @@ export function assertSnapshot(raw: unknown): PortfolioSnapshot {
   if (typeof raw.account.agenticAllowed !== "boolean") {
     throw new SnapshotError("account.agenticAllowed is required");
   }
-  if (raw.mode !== "LOW_CAP_SLOW") throw new SnapshotError("mode must be LOW_CAP_SLOW");
+  if (raw.mode !== "LOW_CAP_SLOW" && raw.mode !== "DIVIDEND_15M") {
+    throw new SnapshotError("mode must be LOW_CAP_SLOW or DIVIDEND_15M");
+  }
   if (!Array.isArray(raw.sleeves)) throw new SnapshotError("sleeves must be an array");
   if (!Array.isArray(raw.quotes)) throw new SnapshotError("quotes must be an array");
   if (!Array.isArray(raw.troughs)) throw new SnapshotError("troughs must be an array");

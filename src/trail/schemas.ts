@@ -59,6 +59,7 @@ export const ledgerAttemptSchema = {
     realized_pnl: { type: ["number", "null"], description: "Broker figure only" },
     spread_at_entry: { type: ["number", "null"] },
     outcome: { type: "string", enum: ["win", "loss", "open", "skipped"] },
+    kind: { type: "string", enum: ["live", "paper_surf"] },
   },
 } as const;
 
@@ -98,8 +99,9 @@ export const portfolioSnapshotSchema = {
         agenticAllowed: { type: "boolean" },
       },
     },
-    mode: { type: "string", const: "LOW_CAP_SLOW" },
+    mode: { type: "string", enum: ["LOW_CAP_SLOW", "DIVIDEND_15M"] },
     equityUsd: { type: "number" },
+    buyingPowerUsd: { type: "number" },
     sleeves: { type: "array" },
     quotes: { type: "array" },
     troughs: { type: "array" },

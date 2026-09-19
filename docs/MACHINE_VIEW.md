@@ -200,8 +200,12 @@ MODE    LOW_CAP_SLOW
 BUCKET  RISK
 WATCH   quiet
 HALT    soft=false expectancy=false
+LEARN   SURF_LEARN $2 every cycle (paper; no place)
+BP      4.00 (>= $2 live micros)
 CANDIDATES
   none
+WHAT-IF TOP
+  1  surf:momentum_15m:ENA              paper +0.0599  live=no  momentum_15m ENA-USD
 PATHS
   example-trough-wld-15m     github_code        15m  trough_bounce_15m            rate n/a  trailing
 TRICK RANKS

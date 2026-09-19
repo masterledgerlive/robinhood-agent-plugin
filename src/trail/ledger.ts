@@ -61,11 +61,12 @@ export class SuccessLedger {
   }
 
   recordAttempt(attempt: LedgerAttempt): LedgerAttempt {
+    const paper = attempt.kind === "paper_surf";
     if (attempt.realized_pnl !== null) {
       if (!Number.isFinite(attempt.realized_pnl)) {
-        throw new LedgerError("Refuse invented PnL. Broker number only.");
+        throw new LedgerError(paper ? "Refuse non-finite paper what-if PnL." : "Refuse invented PnL. Broker number only.");
       }
-      if (attempt.outcome === "win" || attempt.outcome === "loss") {
+      if (!paper && (attempt.outcome === "win" || attempt.outcome === "loss")) {
         if (attempt.order_ids.length === 0) {
           throw new LedgerError("Refuse closed PnL without a real order id.");
         }
@@ -97,9 +98,15 @@ export class SuccessLedger {
     });
   }
 
-  statsFor(id: { path_id?: string; trick_id?: string }): TrickRank {
+  statsFor(
+    id: { path_id?: string; trick_id?: string },
+    opts?: { kind?: "live" | "paper_surf" },
+  ): TrickRank {
+    const kind = opts?.kind ?? "live";
     const closed = this.attempts.filter((a) => {
       if (a.outcome !== "win" && a.outcome !== "loss") return false;
+      const paper = a.kind === "paper_surf";
+      if (kind === "paper_surf" ? !paper : paper) return false;
       if (id.path_id && a.path_id !== id.path_id) return false;
       if (id.trick_id && a.trick_id !== id.trick_id) return false;
       return true;
@@ -119,7 +126,11 @@ export class SuccessLedger {
 
   refreshPathRates(): void {
     for (const path of this.pathMap.values()) {
-      path.success_rate = this.statsFor({ path_id: path.path_id }).success_rate;
+      const paper = path.gates.includes("SURF_LEARN");
+      path.success_rate = this.statsFor(
+        { path_id: path.path_id },
+        paper ? { kind: "paper_surf" } : { kind: "live" },
+      ).success_rate;
     }
   }
 

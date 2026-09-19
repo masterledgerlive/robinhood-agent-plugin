@@ -22,7 +22,10 @@ describe("15m watcher", () => {
     assert.equal(watch.candidates.length, 0);
     assert.equal(watch.halt.soft, false);
     assert.equal(watch.halt.expectancy, false);
-    assert.ok(watch.rejectedCount >= 7);
+    assert.ok(watch.rejectedCount >= 10);
+    assert.equal(watch.learn.ran, true);
+    assert.ok(watch.learn.whatIfTop.length >= 1);
+    assert.equal(watch.learn.notionalUsd, 2);
   });
 
   it("alerts when trough_bounce_15m clears and attaches a follow-path id", () => {
@@ -61,7 +64,8 @@ describe("15m watcher", () => {
       const quietOut = chunks.join("");
       assert.equal(quietCode, 0);
       assert.match(quietOut, /WATCH   quiet/);
-      assert.match(quietOut, /quiet \| 0 candidates/);
+      assert.match(quietOut, /quiet \| 0 live candidates/);
+      assert.match(quietOut, /WHAT-IF TOP/);
       assert.doesNotMatch(quietOut, /place_crypto_order/);
 
       chunks.length = 0;

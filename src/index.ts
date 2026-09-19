@@ -29,6 +29,8 @@ export {
   BANK_ORDER,
   FIL_MCP_DISPLAY_ONLY,
   LOW_CAP_SLOW,
+  DIVIDEND_15M,
+  SURF_LEARN,
   TRAIL_HORIZON_DEFAULT,
   TRICK_IDS,
   SuccessLedger,
@@ -49,6 +51,7 @@ export type {
   TrailBrokerPort,
   TrickEvaluation,
   WatchResult,
+  WhatIfPath,
 } from "./trail/index.js";
 export {
   TRICK_CATALOG,

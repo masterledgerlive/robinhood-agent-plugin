@@ -6,23 +6,20 @@ Use **Agentic AI as the product we trail**, not as endless chat spend. Learn and
 
 **v1 in this repo:** code watches; humans and agents step in on alerts. Continuous 15m checks are deterministic and cheap. Cursor / Grok / desk bots do not poll quiet books.
 
+**Default rails:** `DIVIDEND_15M` + `SURF_LEARN` ([DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md)). LOW_CAP_SLOW remains available. Learn runs **every** cycle. Live micros require **buying power ≥ $2**.
+
 The live book’s job is to **produce or protect tokens under gates — not lose to churn.** IKN CORE ethics apply now as that discipline ([IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md)). The **IKN Network Project** is the cross-system bridge; this plugin stays the RH catalog. Solid pods, Merkle Trust Cards, and medical/cosmos phases are **WIP only** — do not implement them here.
 
 ## Non-negotiables
 
 - Account: Robinhood **Agentic only**. Example rhs `813839826` (account id, not a secret). Never send orders to a non-agentic account.
 - Banks forever: **NEAR → FIL (display-only until MCP unlock) → CHIP**. Dust floors. Never flatten.
-- Mode: **LOW_CAP_SLOW**
-  - max 1 new working entry/day
-  - max 2 working seats
-  - spread hard ≤ 0.8%
-  - edge ≥ 2× round-trip spread
-  - trough+bounce only; no chase
-  - soft halt: day realized ≤ −$1 (broker figure only)
-  - expectancy halt: after 5 losing working RTs
+- Mode: **DIVIDEND_15M** (default) — max 8 new working entries/day, 4 working seats, spread ≤1.2%, edge ≥1.5× RT, soft halt −$2, expectancy halt after 8 losing working RTs. Trough+bounce preferred; light momentum only after SURF_LEARN paper ≥55% over ≥10 trials.
+- Legacy: **LOW_CAP_SLOW** — max 1 entry/day, 2 seats, spread ≤0.8%, edge ≥2× RT, trough+bounce only, soft halt −$1, expectancy halt after 5 RTs.
+- **SURF_LEARN** every 15m: paper $2 what-ifs (trough / momentum / mean-revert / hold_bank), ranked in `WHAT-IF TOP`. Not a live fill.
 - Predictions: Game mobile ~$2 Yes/No only if ≤0.45 or ≥0.85 (MCP cannot place events yet)
 - Real fills / real hashes only — never invent PnL
-- **Gas-gated truth ≡ LOW_CAP_SLOW edge gates.** No edge / wide spread / halt → quiet. Motion ≠ mandate.
+- **Gas-gated truth ≡ active edge gates** (LOW_CAP_SLOW 2× RT, DIVIDEND_15M 1.5× RT prefer 2×). No edge / wide spread / halt → live quiet. Motion ≠ mandate.
 - Unverified agentic chatter (news, social, unnamed bots) is **Wild West quarantine**: paraphrase into follow-path *candidates* only; never auto-trade.
 - Practical Trust Card today: `path_id` + `trick_id` + real `order_id` + ledger outcome. No Merkle/pod layer required to log a fill.
 - No live trading keys in this repo. Watcher and tests use fixtures / stubs. **No order placement from CI or the 15m CLI.**
@@ -39,7 +36,7 @@ The live book’s job is to **produce or protect tokens under gates — not lose
 
 ### Usage / credit discipline
 
-- Cron or a local loop runs `npm run watch:15m` on a snapshot file. Quiet is the default output. That path **must not** open a Cursor cloud agent, Grok Bot turn, or chat session.
+- Cron or a local loop runs `npm run watch:15m` on a snapshot file. Quiet **live** is the default; SURF_LEARN still writes `WHAT-IF TOP`. That path **must not** open a Cursor cloud agent, Grok Bot turn, or chat session.
 - Cursor / agents wake only when:
   1. the watcher prints `WATCH   alert`, or
   2. Game authorizes a bank sleeve, deconcentrate, or other override.
@@ -69,7 +66,10 @@ Name every rotate by the **algorithm**, not the vibe. Each trick is `evaluate(sn
 
 | id | When it may fire |
 | --- | --- |
-| `trough_bounce_15m` | Mark reclaim above a 15–30m trough + spread ≤0.8% + bounce edge ≥2× RT + seats/day open. No chase. |
+| `trough_bounce_15m` | Mark reclaim above a 15–30m trough + active spread/edge + seats/day open. No chase. |
+| `momentum_15m` | Last-15m up-move. Live only on DIVIDEND_15M after paper win rate ≥55% / ≥10 trials. |
+| `mean_revert_15m` | Dip below a known mean. SURF_LEARN always; live only on DIVIDEND_15M if gates clear. |
+| `hold_bank` | SURF_LEARN $2 NEAR/CHIP baseline. Never a live working entry. |
 | `bank_sleeve_authorized` | Game-only bank haircut above dust floor. Never flatten. FIL stays display-only. |
 | `deconcentrate_high_notional` | Game exit of an oversized seat → dust + micro seeds. Never flatten. |
 | `park_to_near` | Cascade park of working profit into NEAR (#1) when profit gates clear. |
@@ -111,6 +111,7 @@ Small-capital research that locked LOW_CAP_SLOW: frequency is the killer on ~$20
 | JSON schemas | `src/trail/schemas.ts`, `docs/schemas/` |
 | Trail plain-text view | `src/log/trail-view.ts` (extends MACHINE VIEW) |
 | EXAMPLE fixtures | `tests/fixtures/trail/*.example.json` |
+| DIVIDEND_15M + SURF_LEARN | [DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md), `src/trail/surf-learn.ts` |
 | IKN CORE ethics (usable now; protocol WIP) | [IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md) |
 
 ```bash

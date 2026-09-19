@@ -54,7 +54,7 @@ export function evaluatePark(snapshot: PortfolioSnapshot, target: ParkTarget): T
       continue;
     }
     const edge = (mark - cost) / cost;
-    if (!edgeClearsRt(edge, quote) && !authorized) {
+    if (!edgeClearsRt(edge, quote, snapshot) && !authorized) {
       lastFail = `${sleeve.symbol}: profit edge < 2× RT (need Game park authorize or a wider gate)`;
       continue;
     }

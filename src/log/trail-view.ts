@@ -1,5 +1,5 @@
 import { RISK_BUCKET } from "../constants.js";
-import { EXAMPLE_AGENTIC_RHS, LOW_CAP_SLOW } from "../trail/constants.js";
+import { DEFAULT_GATE_MODE, EXAMPLE_AGENTIC_RHS, SURF_LEARN } from "../trail/constants.js";
 import type { SuccessLedger } from "../trail/ledger.js";
 import type { PortfolioSnapshot, WatchResult } from "../trail/types.js";
 import type { MachineLogEntry } from "../types.js";
@@ -74,16 +74,38 @@ export function formatTrailView(input: {
           return `  ${c.trick_id}${sym}${path} — ${singleLine(c.reason)}`;
         });
 
+  const mode = input.snapshot?.mode ?? DEFAULT_GATE_MODE;
+  const learn = input.watch?.learn;
+  const bp = input.snapshot?.buyingPowerUsd;
+  const bpLine =
+    bp === undefined
+      ? "unknown (live micros need ≥ $2 when printed)"
+      : bp >= SURF_LEARN.liveMicroMinBuyingPowerUsd
+        ? `${bp.toFixed(2)} (>= $2 live micros)`
+        : `${bp.toFixed(2)} (learn only — no live micro)`;
+
+  const whatIfLines =
+    !learn || learn.whatIfTop.length === 0
+      ? ["  none"]
+      : learn.whatIfTop.map((row) => {
+          const pnl = `${row.whatIfPnlUsd >= 0 ? "+" : ""}${row.whatIfPnlUsd.toFixed(4)}`;
+          return `  ${row.rank}  ${pad(row.path_id, 36)} paper ${pnl}  live=${row.liveClears ? "yes" : "no"}  ${row.trick_id} ${row.symbol}`;
+        });
+
   return [
     "=== TRAIL VIEW ===",
     `TIME    ${at}`,
     `ACCOUNT rhs ${lastFourAccount(rhs)}${agentic ? " (Agentic)" : " (not agentic)"}`,
-    `MODE    ${LOW_CAP_SLOW.id}`,
+    `MODE    ${mode} + ${SURF_LEARN.id}`,
     `BUCKET  ${RISK_BUCKET}`,
     `WATCH   ${watch}`,
     `HALT    soft=${input.watch?.halt.soft ?? false} expectancy=${input.watch?.halt.expectancy ?? false}`,
+    `LEARN   ${SURF_LEARN.id} $${SURF_LEARN.notionalUsd} every cycle (paper; no place)`,
+    `BP      ${bpLine}`,
     "CANDIDATES",
     ...candidateLines,
+    "WHAT-IF TOP",
+    ...whatIfLines,
     "PATHS",
     ...pathLines,
     "TRICK RANKS",
@@ -111,17 +133,22 @@ export function watchToMachineLog(
       asOf: snapshot.asOf,
       rhs_account_number: snapshot.account.rhsAccountNumber,
       candidate_count: n,
+      whatif_top: watch.learn.whatIfTop.length,
+      surf_learn: true,
     },
     result: {
       ok: true,
-      summary: watch.status === "quiet" ? "quiet | 0 candidates" : `alert | ${n} ${names}`,
+      summary:
+        watch.status === "quiet"
+          ? `quiet | 0 live candidates; SURF_LEARN top ${watch.learn.whatIfTop.length}`
+          : `alert | ${n} ${names}`,
       orderId: null,
       fillId: null,
       realizedPnl: null,
     },
     human:
       watch.status === "quiet"
-        ? "Quiet book. No agent step-in. Cron/watcher only."
+        ? "Quiet live book. SURF_LEARN what-if ranks updated. No place."
         : "Alert. Agent/human may step in on gate-clear tricks. No order placed by watcher.",
   };
   return entry;
