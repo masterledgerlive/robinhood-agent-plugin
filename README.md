@@ -101,6 +101,25 @@ HUMAN   Preview clean. Wait for confirm before place.
 
 Account numbers and tokens are redacted. Order ids stay visible. More pictures: [docs/MACHINE_VIEW.md](docs/MACHINE_VIEW.md).
 
+## Agentic trail / surf
+
+Trail Agentic AI → lock follow-paths → name tricks by algorithm → **code** watches every 15m → humans/agents step in on alert (or Game authorize).
+
+Continuous watching is a cheap deterministic script. Do not spend Cursor / Grok / desk credits on unchanged 15m checks.
+
+```bash
+npm run watch:15m -- --snapshot tests/fixtures/trail/quiet.example.json
+npm run trail:view -- --ledger tests/fixtures/trail/ledger.example.json
+```
+
+Quiet is the default. Alert lists trick candidates that cleared **LOW_CAP_SLOW** gates (spread ≤0.8%, edge ≥2× RT, trough+bounce, max 1 new working entry/day, max 2 working seats, dust floors, never flatten). The watcher never places an order.
+
+Banks stay **NEAR → FIL (display-only until MCP unlock) → CHIP**. Example Agentic rhs `813839826` (not a secret).
+
+Favor **produce/protect tokens under gates**, not lose-to-churn. [IKN CORE ethics](docs/IKN_CORE_ETHICS_BRIDGE.md) apply now as that bridge: gas-gated truth ≡ LOW_CAP_SLOW edge gates; unverified agentic chatter is Wild West quarantine; the practical Trust Card today is `path_id` + `trick_id` + real `order_id` + ledger outcome. The **IKN Network Project** holds cross-system / WIP layers (Solid pods, Merkle cards, medical/cosmos) — do not implement those here.
+
+Full spec: [docs/AGENTIC_TRAIL_MODEL.md](docs/AGENTIC_TRAIL_MODEL.md).
+
 ## NEAR prediction + crypto playbook
 
 Short version:
@@ -139,7 +158,7 @@ npm test
 npm run build
 ```
 
-Tests do not call Robinhood. They cover the log formatter, risk guard, and capability matcher.
+Tests do not call Robinhood and do not place orders. They cover the log formatter, risk guard, capability matcher, trick `evaluate()` gates, and watcher quiet/alert.
 
 ## License
 

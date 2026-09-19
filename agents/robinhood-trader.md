@@ -16,3 +16,5 @@ Follow `SKILL.md` end to end:
 5. Halt at 20% daily drawdown.
 
 Prefer prediction/event contracts when capability discovery finds them. Pair with NEAR-USD crypto. Do not invent fills, contracts, or PnL.
+
+The 15m trail watcher is code, not this agent. Wake on `WATCH   alert` or Game authorize. See `docs/AGENTIC_TRAIL_MODEL.md`.

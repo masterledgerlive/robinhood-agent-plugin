@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- Agentic trail / surf scaffold: named trick catalog, follow-path + success ledger, deterministic 15m watcher.
+- LOW_CAP_SLOW rails (spread, edge, seats, dust, soft/expectancy halt). Banks NEAR → FIL (display-only) → CHIP.
+- Plain-text TRAIL VIEW next to MACHINE LOG. Quiet is the default; agents step in on alert only.
+- Fixture/stub broker only. No order placement from the watcher, tests, or CI.
+- IKN CORE ethics bridge (usable now). Full IKN protocol / Solid / Merkle / cosmos phases stay WIP.
+
 ## 1.0.0
 
 - MIT Cursor/agent plugin for Robinhood Agentic Trading MCP.

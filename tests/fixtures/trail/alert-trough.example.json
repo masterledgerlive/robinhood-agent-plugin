@@ -1,0 +1,52 @@
+{
+  "example": true,
+  "$comment": "EXAMPLE — fixture for tests. Constructed WLD trough/quote numbers so trough_bounce_15m clears gates. Not a live broker snapshot. Do not treat as real fills or PnL.",
+  "asOf": "2026-09-18T17:15:00.000Z",
+  "account": {
+    "rhsAccountNumber": "813839826",
+    "agenticAllowed": true
+  },
+  "mode": "LOW_CAP_SLOW",
+  "equityUsd": 22,
+  "sleeves": [
+    {
+      "symbol": "NEAR-USD",
+      "role": "bank",
+      "notionalUsd": 8.5,
+      "peakNotionalUsd": 8.5
+    },
+    {
+      "symbol": "FIL-USD",
+      "role": "bank",
+      "notionalUsd": 2.1,
+      "peakNotionalUsd": 2.1
+    },
+    {
+      "symbol": "CHIP-USD",
+      "role": "bank",
+      "notionalUsd": 3.4,
+      "peakNotionalUsd": 3.4
+    }
+  ],
+  "quotes": [
+    { "symbol": "NEAR-USD", "bid": 5.1, "ask": 5.14, "mark": 5.12 },
+    { "symbol": "FIL-USD", "bid": 4.2, "ask": 4.28, "mark": 4.24 },
+    { "symbol": "CHIP-USD", "bid": 0.11, "ask": 0.111, "mark": 0.1105 },
+    { "symbol": "WLD-USD", "bid": 0.802, "ask": 0.806, "mark": 0.804 }
+  ],
+  "troughs": [
+    {
+      "symbol": "WLD-USD",
+      "troughMark": 0.8,
+      "troughAt": "2026-09-18T16:50:00.000Z",
+      "windowMinutes": 15,
+      "recentHigh": 0.824
+    }
+  ],
+  "day": {
+    "date": "2026-09-18",
+    "newWorkingEntries": 0,
+    "realizedPnlUsd": null,
+    "losingWorkingRoundTrips": 0
+  }
+}

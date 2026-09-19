@@ -3,8 +3,10 @@ name: robinhood-agentic-trading
 description: >
   Trade on a dedicated Robinhood Agentic account via MCP.
   Use when the user asks to trade RISK, run the NEAR prediction+crypto playbook,
-  preview/place Robinhood orders, read MACHINE LOG, or halt on drawdown.
+  preview/place Robinhood orders, read MACHINE LOG, halt on drawdown,
+  or step in on a 15m trail-watch alert.
   Discover tools at runtime. Review before place. Never invent PnL.
+  Do not use this skill to poll a quiet 15m book — the watcher script does that.
 ---
 
 # Robinhood Agentic Trading
@@ -130,6 +132,14 @@ Lane B — crypto NEAR-USD:
 4. Park micro wins in a longer NEAR hold. Do not raise the bet size.
 
 If Lane A tools are missing, log that fact and run Lane B only.
+
+### 8. Trail watch (alerts only)
+
+The 15m watcher in `src/trail/` is deterministic. Cron it. Do not start a chat turn to re-check an unchanged book.
+
+Step in only when `WATCH   alert` lists a gate-clear trick (`trough_bounce_15m`, Game-authorized sleeve/deconcentrate/park, or a halt) or Game asks. Then follow review-before-place and tag the MACHINE LOG with `trick_id` + `path_id`.
+
+See [docs/AGENTIC_TRAIL_MODEL.md](docs/AGENTIC_TRAIL_MODEL.md).
 
 ## PnL
 
