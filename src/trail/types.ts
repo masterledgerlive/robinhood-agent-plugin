@@ -207,6 +207,18 @@ export type SurfLearnResult = {
   liveMicroOk: boolean;
 };
 
+export type NextMoveAction = "hold" | "accumulate" | "enter" | "red_day_exit";
+
+/** Math-only recommendation. Never an order. */
+export type NextMove = {
+  action: NextMoveAction;
+  trick_id: string;
+  reason: string;
+  live: boolean;
+  symbol?: string;
+  path_id?: string;
+};
+
 export type WatchResult = {
   status: "quiet" | "alert";
   asOf: string;
@@ -215,6 +227,7 @@ export type WatchResult = {
   rejectedCount: number;
   learn: SurfLearnResult;
   redDay: RedDayResult;
+  nextMove: NextMove;
 };
 
 export type TrickRank = {

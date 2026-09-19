@@ -14,7 +14,7 @@ import type { Trick } from "./types.js";
 export const momentum15m: Trick = {
   id: "momentum_15m",
   whenItMayFire:
-    "DIVIDEND_15M live: last-15m up-move ≥ edge × RT, spread OK. Watcher also requires SURF_LEARN paper win rate ≥55% over ≥10 trials. LOW_CAP_SLOW: learn only.",
+    "DIVIDEND_15M live: last-15m up-move ≥ edge × RT, spread OK. Watcher unlocks after SURF_LEARN paper ≥50% over ≥3 trials (graduate prefer 55%/10). LOW_CAP_SLOW: learn only.",
   paramsSchema: {
     type: "object",
     additionalProperties: false,

@@ -174,7 +174,7 @@ Tool names in these pictures match one live snapshot. Your session may differ. D
 
 The trail watcher extends this ticker. It does not place. Quiet is the default.
 
-`WATCH → CANDIDATES → PATHS → TRICK RANKS → LAST ALERTS`
+`WATCH → NEXT MOVE → CANDIDATES → WHAT-IF TOP → PATHS → TRICK RANKS → LAST ALERTS`
 
 ```
 === MACHINE LOG ===
@@ -196,12 +196,15 @@ HUMAN   Quiet book. No agent step-in. Cron/watcher only.
 === TRAIL VIEW ===
 TIME    2026-09-18T17:00:00.000Z
 ACCOUNT rhs …9826 (Agentic)
-MODE    LOW_CAP_SLOW
+MODE    DIVIDEND_15M + SURF_LEARN + SURF_ACT
 BUCKET  RISK
 WATCH   quiet
-HALT    soft=false expectancy=false
+HALT    soft=false expectancy=false red_day=false
 LEARN   SURF_LEARN $2 every cycle (paper; no place)
 BP      4.00 (>= $2 live micros)
+NEXT MOVE
+  hold  hold_bank  live=no
+  No live gate-clear rotate. SURF_LEARN keeps ranking. Banks stay; do not chase.
 CANDIDATES
   none
 WHAT-IF TOP

@@ -3,6 +3,7 @@ import { evaluateAll } from "../tricks/catalog.js";
 import { baseSymbol, expectancyHaltActive, isAgenticAccount, softHaltActive } from "./gates.js";
 import type { SuccessLedger } from "./ledger.js";
 import { redDayTrigger } from "./red-day.js";
+import { recommendNextMove } from "./surf-act.js";
 import { runSurfLearn } from "./surf-learn.js";
 import type { PortfolioSnapshot, WatchCandidate, WatchResult, WhisperCard } from "./types.js";
 
@@ -50,6 +51,7 @@ export function watch15m(
     candidates.map((c) => `${c.trick_id}:${c.symbol ? baseSymbol(c.symbol) : ""}`),
   );
   const learn = runSurfLearn(snapshot, ledger, liveHits);
+  const nextMove = recommendNextMove({ candidates, learn, redDay });
 
   const liveQuiet = candidates.length === 0 && !redDay.active;
   const result: WatchResult = {
@@ -60,6 +62,7 @@ export function watch15m(
     rejectedCount: evaluations.length - candidates.length,
     learn,
     redDay,
+    nextMove,
   };
 
   if (ledger && result.status === "alert") {

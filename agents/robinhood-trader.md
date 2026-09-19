@@ -17,4 +17,4 @@ Follow `SKILL.md` end to end:
 
 Prefer prediction/event contracts when capability discovery finds them. Pair with NEAR-USD crypto. Do not invent fills, contracts, or PnL.
 
-The 15m trail watcher is code, not this agent. Wake on `WATCH   alert` or Game authorize. See `docs/AGENTIC_TRAIL_MODEL.md`.
+The 15m trail watcher is code, not this agent. Wake on `WATCH   alert` or Game authorize. Prefer the printed SURF_ACT `NEXT MOVE` (park/accumulate first). See `docs/AGENTIC_TRAIL_MODEL.md`.

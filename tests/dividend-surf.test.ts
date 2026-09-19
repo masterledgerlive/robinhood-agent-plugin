@@ -46,7 +46,7 @@ describe("DIVIDEND_15M + SURF_LEARN", () => {
     assert.ok(paper.success_rate !== null || paper.attempts === 0);
   });
 
-  it("does not promote momentum to live without ≥10 paper trials at ≥55%", () => {
+  it("does not promote momentum to live without ≥3 paper trials at ≥50%", () => {
     const quiet = loadExample("quiet.example.json");
     assert.equal(evaluateTrick("momentum_15m", quiet).eligible, true);
     const watch = watch15m(quiet);
@@ -54,6 +54,8 @@ describe("DIVIDEND_15M + SURF_LEARN", () => {
       watch.candidates.some((c) => c.trick_id === "momentum_15m"),
       false,
     );
+    assert.equal(watch.nextMove.action, "hold");
+    assert.equal(watch.nextMove.live, false);
   });
 
   it("blocks live micros when buying power is under $2 but still learns", () => {

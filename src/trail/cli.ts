@@ -102,7 +102,7 @@ function usage(): string {
     "  watch --snapshot <file> [--ledger <file>] [--whispers <file>] [--json]",
     "  view  [--snapshot <file>] [--ledger <file>] [--whispers <file>] [--json]",
     "",
-    "Quiet is the default. Alert only when a named trick clears LOW_CAP_SLOW gates.",
+    "Quiet is the default. Alert only when a named trick clears DIVIDEND_15M (or LOW_CAP_SLOW) gates.",
     "Cron this. Do not spend Cursor/agent credits on unchanged 15m checks.",
   ].join("\n");
 }

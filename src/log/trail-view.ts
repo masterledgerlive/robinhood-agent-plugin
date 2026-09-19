@@ -84,6 +84,14 @@ export function formatTrailView(input: {
         ? `${bp.toFixed(2)} (>= $2 live micros)`
         : `${bp.toFixed(2)} (learn only — no live micro)`;
 
+  const nm = input.watch?.nextMove;
+  const nextMoveLines = !nm
+    ? ["  hold_bank — learn / accumulate (no place)"]
+    : [
+        `  ${nm.action}  ${nm.trick_id}${nm.symbol ? ` ${nm.symbol}` : ""}${nm.path_id ? ` path ${nm.path_id}` : ""}  live=${nm.live ? "yes" : "no"}`,
+        `  ${singleLine(nm.reason)}`,
+      ];
+
   const whatIfLines =
     !learn || learn.whatIfTop.length === 0
       ? ["  none"]
@@ -121,12 +129,14 @@ export function formatTrailView(input: {
     "=== TRAIL VIEW ===",
     `TIME    ${at}`,
     `ACCOUNT rhs ${lastFourAccount(rhs)}${agentic ? " (Agentic)" : " (not agentic)"}`,
-    `MODE    ${mode} + ${SURF_LEARN.id}`,
+    `MODE    ${mode} + ${SURF_LEARN.id} + SURF_ACT`,
     `BUCKET  ${RISK_BUCKET}`,
     `WATCH   ${watch}`,
     `HALT    soft=${input.watch?.halt.soft ?? false} expectancy=${input.watch?.halt.expectancy ?? false} red_day=${input.watch?.halt.redDay ?? false}`,
     `LEARN   ${SURF_LEARN.id} $${SURF_LEARN.notionalUsd} every cycle (paper; no place)`,
     `BP      ${bpLine}`,
+    "NEXT MOVE",
+    ...nextMoveLines,
     "CANDIDATES",
     ...candidateLines,
     "WHAT-IF TOP",
@@ -164,6 +174,7 @@ export function watchToMachineLog(
       candidate_count: n,
       whatif_top: watch.learn.whatIfTop.length,
       surf_learn: true,
+      surf_act: watch.nextMove.action,
       red_day: watch.redDay.status,
     },
     result: {
