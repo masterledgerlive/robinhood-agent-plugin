@@ -1,4 +1,16 @@
-# Red-day + Agentic whisper playbook (Game 2026-09-18 ~8:02 PT)
+# Red-day + green-only + Agentic whisper playbook
+
+## Lesson 2026-09-19 (live book)
+
+The system **failed to act** when everything went red. Fix locked in code:
+
+1. **Trigger** when the book/tape go broad-red (2-of-3) — tape may use **session opens** when `mark15m` is missing (live RH quotes).
+2. **Exit** working seats to dust (never flatten banks).
+3. **Shelter into green-only tokens** (still green vs session open — e.g. ZEC while NEAR/WLD/SEI/ENA/CHIP are red) until bottoms form.
+4. **Re-enter** on trough reclaim **without agents** — cron math prints WHERE/WHEN; do **not** soft-halt trough forever during RED_DAY.
+5. **Clear** when NEAR reclaims session open (or Game clears).
+
+Agents are optional for the whole loop. Watcher still **never places**.
 
 ## Intent
 
@@ -8,11 +20,12 @@ Use **Agentic AI traffic / whispers** (rooms, desks, public agentic chatter) as 
 2. **Red days** (broad risk-off)
 3. Which tokens those spaces say still **make revenue** or bounce hardest
 4. **Exit** working seats before the slide deepens
-5. **Re-enter** near the trough with a pre-staged route
+5. **Green-only shelter** while waiting for bottoms
+6. **Re-enter** near the trough with a pre-staged route — agentless recommend
 
 Whispers are **candidates**, not orders. IKN Wild West: unverified rumor stays **quarantine** until price/structure confirms.
 
-The 15m watcher **never places**. On `fired` it only recommends `exit_working_to_dust` (leave dust; never flatten banks) and staged `buy_trough` tokens.
+The 15m watcher **never places**. On `fired` it recommends `exit_working_to_dust`, `park_green_only`, and staged `buy_trough` tokens.
 
 ## Sources (whisper ingest)
 
@@ -35,29 +48,31 @@ Schema: [schemas/whisper-card.schema.json](schemas/whisper-card.schema.json). De
 
 ## Red-day trigger (READY)
 
-`redDayTrigger.evaluate(snapshot, whispers[]) → { quiet | armed | fired, reasons[] }`
+`redDayTrigger.evaluate(snapshot, whispers[]) → { quiet | armed | fired, phase, reasons[] }`
 
 Armed/fired when **any two** of these fire inside a 30m window:
 
 - **A) Whisper:** ≥2 independent agentic sources (or Game ping / `authorize.redDay`) tagging `red_day`
 - **B) Book:** NEAR mark ≤ −2% vs session open **or** ≥2 working seats each ≤ −1.5% vs cost
-- **C) Tape:** majority of SURF_LEARN universe 15m marks negative after estimated RT cost (`mark15m` required; no invent)
+- **C) Tape:** majority of SURF_LEARN universe 15m marks negative after RT **or** ≥75% of names with session opens are red vs open (“everything going red”). Missing marks are not invented.
 
-| Status | Meaning |
-| --- | --- |
-| `quiet` | 0–1 legs |
-| `armed` | 2+ legs, no working seat above dust to sleeve |
-| `fired` | 2+ legs and at least one working seat above dust |
+| Status | Phase | Meaning |
+| --- | --- | --- |
+| `quiet` | `quiet` | 0–1 legs |
+| `armed` | `green_shelter` / `wait_bottoms` / `reenter` | 2+ legs, no working seat above dust |
+| `fired` | `defend` | 2+ legs and at least one working seat above dust |
+| (any) | `cleared` | NEAR reclaimed open or Game cleared — `active=false` |
 
-**On fired (recommend only — no place):**
+**On fired / active (recommend only — no place):**
 
 1. `exit_working_to_dust` — list working seats; leave dust forever
 2. **Never flatten banks** (NEAR/FIL/CHIP floors)
-3. Do not chase day leaders down
-4. Treat book as `RED_DAY_ACTIVE`: soft-halt new chase entries (`trough_bounce` / `momentum` / `mean_revert`)
-5. Stage `buy_trough` candidates from whisper tokens that clear DIVIDEND_15M spread ≤1.2%
+3. Do not chase day leaders down (`momentum` / `mean_revert` soft-halt while active)
+4. `park_green_only` — tokens still **green vs session open** (relative strength shelter)
+5. Stage `buy_trough` from whisper tokens that clear DIVIDEND_15M spread ≤1.2%
+6. When trough reclaim appears → phase `reenter` — allow `trough_bounce_15m` (agentless recommend)
 
-**Re-enter (trough route, still no watcher place):** wait for SURF_LEARN / `trough_bounce_15m` on whisper-favored tokens or liquid majors. Size with available BP; one seat first. Clear active when NEAR reclaims session open or Game clears.
+**Re-enter (trough route, still no watcher place):** SURF_LEARN / `trough_bounce_15m` on bottoms. Size with available BP; one seat first. Clear active when NEAR reclaims session open or Game clears.
 
 ## Massive-up whisper
 
@@ -67,4 +82,4 @@ Same ingest; `route_hint` may be `hold_banks` + selective working add — still 
 
 15m check: scan whisper inbox if present, score red-day trigger, wake parent on arm/fire (`WATCH   alert`). Place exits only in a later human/agent step when Game has standing authorize. This plugin does not place.
 
-DIVIDEND_15M + SURF_LEARN stay intact. Banks never flatten.
+Cron knows WHERE/WHEN with **zero agent credits**. DIVIDEND_15M + SURF_LEARN stay intact. Banks never flatten.

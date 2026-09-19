@@ -83,12 +83,18 @@ export const SURF_ACT = {
   trickOutPreference: ["trick_out_at_peak"] as const,
   /** After crash reclaim: second-wave ride to higher peak. */
   secondWavePreference: ["second_wave_reentry"] as const,
+  /** RED_DAY green-only shelter while waiting for bottoms. */
+  greenOnlyPreference: ["park_green_only"] as const,
   enterPreference: ["trough_bounce_15m", "mean_revert_15m", "momentum_15m"] as const,
 } as const;
 
 export const DEFAULT_GATE_MODE = "DIVIDEND_15M" as const;
 
-/** Red-day 2-of-3 window. Whispers stay Wild West quarantine until book/tape confirms. */
+/**
+ * Red-day 2-of-3 window. Whispers stay Wild West quarantine until book/tape confirms.
+ * Lesson 2026-09-19: when everything goes red, exit working → green-only shelter
+ * until bottoms, then agentless trough re-entry. Cron math; agents optional.
+ */
 export const RED_DAY = {
   id: "RED_DAY",
   windowMinutes: 30,
@@ -96,6 +102,11 @@ export const RED_DAY = {
   workingVsCost: -0.015,
   minWorkingDownSeats: 2,
   minIndependentSources: 2,
+  /** Majority red vs session open → tape leg (when opens present; no invent). */
+  everythingRedFraction: 0.75,
+  minTapeScored: 2,
+  /** Still green vs open → shelter candidate while RED_DAY active. */
+  greenMinClimbFromOpen: 0,
 } as const;
 
 export const WHISPER_THEMES = ["red_day", "massive_up", "token_specific"] as const;
@@ -124,6 +135,7 @@ export const TRICK_IDS = [
   "deconcentrate_high_notional",
   "park_to_near",
   "park_to_chip",
+  "park_green_only",
   "trick_out_at_peak",
   "second_wave_reentry",
   "expectancy_halt",

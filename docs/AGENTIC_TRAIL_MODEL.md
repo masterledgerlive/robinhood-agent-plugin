@@ -118,7 +118,7 @@ Small-capital research that locked LOW_CAP_SLOW: frequency is the killer on ~$20
 | Wave equation + per-token triggers | [AGENTIC_MOVE_EQ.md](AGENTIC_MOVE_EQ.md), `src/trail/equation.ts`, `src/trail/wave.ts`, `src/trail/triggers.ts` |
 | Peak ride + primed rotate | [PEAK_PRIME_ROTATE.md](PEAK_PRIME_ROTATE.md), `src/trail/peak.ts`, `src/trail/prime.ts`, `src/tricks/trick-out-at-peak.ts`, `src/tricks/second-wave-reentry.ts` |
 | Agentic usage credits | [AGENTIC_USAGE_CREDITS.md](AGENTIC_USAGE_CREDITS.md) |
-| Red-day + whispers | [RED_DAY_WHISPER.md](RED_DAY_WHISPER.md), `src/trail/red-day.ts` |
+| Red-day + green-only + whispers | [RED_DAY_WHISPER.md](RED_DAY_WHISPER.md), `src/trail/red-day.ts`, `src/trail/green-only.ts` |
 | IKN CORE ethics (usable now; protocol WIP) | [IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md) |
 
 ```bash

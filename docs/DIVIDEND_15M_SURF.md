@@ -53,10 +53,14 @@ If BP < $2: **learn only** — no forced last-dollar trades. Free BP via Game-au
 
 Priority is fixed math:
 
-1. **RED_DAY fired** → `red_day_exit` (working to dust; banks hold)
-2. **Accumulate** → `park_to_near` then `park_to_chip` when working profit clears the park gate (leave dust)
-3. **Enter one seat** → `trough_bounce_15m` (proven pullback) then `mean_revert_15m` then unlocked `momentum_15m`
-4. Else **hold / hold_bank** (`live=false`) — banks stay; SURF_LEARN keeps ranking
+1. **RED_DAY fired / defend** → `red_day_exit` (working to dust; banks hold)
+2. **RED_DAY green_shelter** → `green_only_park` (tokens still green vs session open until bottoms)
+3. **RED_DAY reenter** → `trough_bounce_15m` agentless recommend when bottoms form
+4. **Accumulate** → `park_to_near` then `park_to_chip` when working profit clears the park gate (leave dust)
+5. **Enter one seat** → `trough_bounce_15m` then `mean_revert_15m` then unlocked `momentum_15m`
+6. Else **hold / hold_bank** (`live=false`) — banks stay; SURF_LEARN keeps ranking
+
+Lesson 2026-09-19: while RED_DAY is active, soft-halt only **chase** (`momentum` / `mean_revert`). Do **not** block trough re-entry forever — green-only then bottoms then enter, without agents.
 
 TRAIL VIEW prints `NEXT MOVE`. The watcher still does not preview or place. Agents/humans step in on `WATCH   alert` and follow review-before-place.
 

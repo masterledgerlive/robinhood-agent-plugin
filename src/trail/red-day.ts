@@ -1,5 +1,11 @@
 import { DIVIDEND_15M, RED_DAY } from "./constants.js";
 import {
+  everythingGoingRed,
+  isGreenVsOpen,
+  rankGreenOnly,
+  redVsOpenFraction,
+} from "./green-only.js";
+import {
   baseSymbol,
   dustFloorUsd,
   findQuote,
@@ -13,6 +19,8 @@ import type {
   PortfolioSnapshot,
   RedDayBuyTrough,
   RedDayExitSeat,
+  RedDayGreenPark,
+  RedDayPhase,
   RedDayResult,
   WhisperCard,
 } from "./types.js";
@@ -93,21 +101,60 @@ function bookLeg(snapshot: PortfolioSnapshot): { ok: boolean; reason: string } {
   };
 }
 
+/**
+ * Tape leg — lesson fix: do not require mark15m alone.
+ * Prefer mark15m what-ifs when present; else majority red vs session open
+ * ("everything going red") so live RH opens can arm the book without agents.
+ */
 function tapeLeg(snapshot: PortfolioSnapshot): { ok: boolean; reason: string } {
   const scored = surfUniverseQuotes(snapshot)
     .map((q) => whatIfPnlUsd(q, 1))
     .filter((n): n is number => n !== null);
-  if (scored.length < 2) {
-    return { ok: false, reason: "C: tape needs ≥2 SURF_LEARN marks with mark15m — will not invent" };
+  if (scored.length >= RED_DAY.minTapeScored) {
+    const negative = scored.filter((n) => n < 0).length;
+    const ok = negative * 2 > scored.length;
+    if (ok) {
+      return {
+        ok: true,
+        reason: `C: ${negative}/${scored.length} SURF_LEARN names negative after RT`,
+      };
+    }
   }
+
+  const vsOpen = redVsOpenFraction(snapshot);
+  if (everythingGoingRed(snapshot) && vsOpen.fraction !== null) {
+    return {
+      ok: true,
+      reason: `C: everything going red — ${vsOpen.red}/${vsOpen.scored} names red vs session open (≥${(RED_DAY.everythingRedFraction * 100).toFixed(0)}%)`,
+    };
+  }
+
+  if (scored.length < RED_DAY.minTapeScored && (vsOpen.scored < RED_DAY.minTapeScored || vsOpen.fraction === null)) {
+    return {
+      ok: false,
+      reason:
+        "C: tape needs ≥2 SURF_LEARN mark15m or ≥2 session opens — will not invent",
+    };
+  }
+
+  if (vsOpen.fraction !== null) {
+    return {
+      ok: false,
+      reason: `C: ${vsOpen.red}/${vsOpen.scored} red vs open (need ≥${(RED_DAY.everythingRedFraction * 100).toFixed(0)}% majority) and mark15m majority not met`,
+    };
+  }
+
   const negative = scored.filter((n) => n < 0).length;
-  const ok = negative * 2 > scored.length;
   return {
-    ok,
-    reason: ok
-      ? `C: ${negative}/${scored.length} SURF_LEARN names negative after RT`
-      : `C: ${negative}/${scored.length} SURF_LEARN names negative after RT (need majority)`,
+    ok: false,
+    reason: `C: ${negative}/${scored.length} SURF_LEARN names negative after RT (need majority)`,
   };
+}
+
+function nearReclaimedOpen(snapshot: PortfolioSnapshot): boolean {
+  const near = findQuote(snapshot, "NEAR");
+  if (!near?.sessionOpen || !(near.sessionOpen > 0)) return false;
+  return near.mark + 1e-12 >= near.sessionOpen;
 }
 
 function confirmDisplay(whispers: WhisperCard[], asOf: string, structure: boolean): WhisperCard[] {
@@ -134,6 +181,26 @@ function exitSeats(snapshot: PortfolioSnapshot): RedDayExitSeat[] {
     });
   }
   return out;
+}
+
+function greenParkCandidates(snapshot: PortfolioSnapshot): RedDayGreenPark[] {
+  return rankGreenOnly(snapshot).map((g) => ({
+    symbol: g.symbol,
+    climbFromOpen: g.climbFromOpen,
+    reason: g.reason,
+  }));
+}
+
+function bottomsFound(snapshot: PortfolioSnapshot): boolean {
+  for (const trough of snapshot.troughs) {
+    if (isBankSymbol(trough.symbol)) continue;
+    const quote = findQuote(snapshot, trough.symbol);
+    if (!quote) continue;
+    if (!(quote.mark > trough.troughMark)) continue;
+    // Reclaim started — bottoms forming (not inventing; needs trough on snapshot).
+    return true;
+  }
+  return false;
 }
 
 function buyTroughCandidates(
@@ -188,11 +255,29 @@ function buyTroughCandidates(
   return out;
 }
 
+function resolvePhase(input: {
+  active: boolean;
+  cleared: boolean;
+  exits: RedDayExitSeat[];
+  greens: RedDayGreenPark[];
+  bottoms: boolean;
+  troughBuys: RedDayBuyTrough[];
+}): RedDayPhase {
+  if (input.cleared) return "cleared";
+  if (!input.active) return "quiet";
+  if (input.exits.length > 0) return "defend";
+  if (input.bottoms || input.troughBuys.some((b) => !b.reason.includes("no chase"))) {
+    return input.bottoms ? "reenter" : "wait_bottoms";
+  }
+  if (input.greens.length > 0) return "green_shelter";
+  return "wait_bottoms";
+}
+
 /**
  * 2-of-3 red-day trigger. Quiet unless two legs fire.
  * Armed = 2+ legs, no working sleeve to exit.
- * Fired = 2+ legs and at least one working seat above dust (recommend exit + trough).
- * Never places.
+ * Fired = 2+ legs and at least one working seat above dust (recommend exit + green-only + trough).
+ * Lesson: exit red → green-only until bottoms → agentless re-enter. Never places.
  */
 export function evaluateRedDay(snapshot: PortfolioSnapshot, whispers: WhisperCard[] = []): RedDayResult {
   const A = whisperLeg(snapshot, whispers);
@@ -204,15 +289,54 @@ export function evaluateRedDay(snapshot: PortfolioSnapshot, whispers: WhisperCar
   const display = confirmDisplay(whispers, snapshot.asOf, structure);
   const reasons = [A.reason, B.reason, C.reason];
   const exits = exitSeats(snapshot);
+  const greens = greenParkCandidates(snapshot);
   const buys = buyTroughCandidates(snapshot, display);
+  const bottoms = bottomsFound(snapshot);
+  const nearOk = nearReclaimedOpen(snapshot);
+  const gameClear = snapshot.authorize?.redDay === false;
+  const clearedByNear = nearOk && (A.ok || C.ok || count >= 2);
+
+  if (count < 2 && !clearedByNear && !gameClear) {
+    return {
+      status: "quiet",
+      phase: "quiet",
+      reasons,
+      legs,
+      active: false,
+      cleared: false,
+      recommendations: { exitWorkingToDust: [], parkGreenOnly: [], buyTrough: [] },
+      whispers: display,
+    };
+  }
+
+  // Once structure fired (or tape still red), NEAR reclaim (or Game clear) ends RED_DAY_ACTIVE.
+  if (clearedByNear || gameClear) {
+    reasons.push(
+      gameClear
+        ? "Game cleared RED_DAY — resume normal SURF_ACT (agents optional)"
+        : "NEAR reclaimed session open — clear RED_DAY; resume trough re-entry without agents",
+    );
+    return {
+      status: "armed",
+      phase: "cleared",
+      reasons,
+      legs,
+      active: false,
+      cleared: true,
+      recommendations: { exitWorkingToDust: [], parkGreenOnly: greens, buyTrough: buys },
+      whispers: display,
+    };
+  }
 
   if (count < 2) {
     return {
       status: "quiet",
+      phase: "quiet",
       reasons,
       legs,
       active: false,
-      recommendations: { exitWorkingToDust: [], buyTrough: [] },
+      cleared: false,
+      recommendations: { exitWorkingToDust: [], parkGreenOnly: [], buyTrough: [] },
       whispers: display,
     };
   }
@@ -220,19 +344,43 @@ export function evaluateRedDay(snapshot: PortfolioSnapshot, whispers: WhisperCar
   const fired = exits.length > 0;
   const status = fired ? "fired" : "armed";
   if (fired) {
-    reasons.push(`recommend exit_working_to_dust on ${exits.map((e) => e.symbol).join(", ")} — leave dust, never flatten banks`);
+    reasons.push(
+      `recommend exit_working_to_dust on ${exits.map((e) => e.symbol).join(", ")} — leave dust, never flatten banks`,
+    );
   } else {
     reasons.push("RED_DAY armed — no working seat above dust to sleeve");
   }
+  if (greens.length > 0) {
+    reasons.push(
+      `green-only shelter: ${greens.map((g) => `${g.symbol} +${(g.climbFromOpen * 100).toFixed(2)}%`).join(", ")} until bottoms — agents optional`,
+    );
+  } else {
+    reasons.push("green-only shelter: none still green vs open — wait bottoms on staged troughs");
+  }
+  if (bottoms) {
+    reasons.push("bottoms forming (trough reclaim) — agentless re-enter via trough_bounce / buy_trough");
+  }
+
+  const phase = resolvePhase({
+    active: true,
+    cleared: false,
+    exits,
+    greens,
+    bottoms,
+    troughBuys: buys,
+  });
 
   return {
     status,
+    phase,
     reasons,
     legs,
     active: true,
+    cleared: false,
     recommendations: {
       exitWorkingToDust: fired ? exits : [],
-      buyTrough: fired ? buys : [],
+      parkGreenOnly: greens,
+      buyTrough: fired || phase === "reenter" || phase === "wait_bottoms" || phase === "green_shelter" ? buys : [],
     },
     whispers: display,
   };
@@ -241,3 +389,29 @@ export function evaluateRedDay(snapshot: PortfolioSnapshot, whispers: WhisperCar
 export const redDayTrigger = {
   evaluate: evaluateRedDay,
 };
+
+/** Allow trough re-entry on this symbol while RED_DAY active (green-only or staged trough). */
+export function redDayAllowsTroughReentry(
+  redDay: RedDayResult,
+  symbol: string,
+): boolean {
+  if (!redDay.active) return true;
+  if (redDay.phase === "reenter" || redDay.phase === "wait_bottoms") {
+    const base = baseSymbol(symbol);
+    if (redDay.recommendations.buyTrough.some((b) => baseSymbol(b.symbol) === base)) return true;
+    if (redDay.recommendations.parkGreenOnly.some((g) => baseSymbol(g.symbol) === base)) return true;
+    // Bottoms on any staged name: allow trough_bounce generally in reenter phase.
+    if (redDay.phase === "reenter") return true;
+  }
+  // Green shelter: only green-only names (relative strength), not red chase.
+  if (redDay.phase === "green_shelter" || redDay.phase === "defend") {
+    return redDay.recommendations.parkGreenOnly.some((g) => baseSymbol(g.symbol) === baseSymbol(symbol));
+  }
+  return false;
+}
+
+export function isGreenShelterSymbol(redDay: RedDayResult, symbol: string): boolean {
+  return redDay.recommendations.parkGreenOnly.some((g) => baseSymbol(g.symbol) === baseSymbol(symbol));
+}
+
+export { isGreenVsOpen };

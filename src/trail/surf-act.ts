@@ -7,25 +7,70 @@ function pickCandidate(candidates: WatchCandidate[], trickId: string): WatchCand
 
 /**
  * One recommended move this 15m slot.
- * Red-day exit → peak trick-out → accumulate (park) → enter.
+ * Red-day exit → green-only shelter → peak trick-out → second-wave → accumulate → enter.
  * Live=false means hold / learn — do not flip a quiet book to chase.
- * Never places.
+ * Never places. Agents optional.
  */
 export function recommendNextMove(input: {
   candidates: WatchCandidate[];
   learn: SurfLearnResult;
   redDay: RedDayResult;
 }): NextMove {
-  if (input.redDay.status === "fired") {
+  if (input.redDay.status === "fired" && input.redDay.phase === "defend") {
     const seat = input.redDay.recommendations.exitWorkingToDust[0];
     const move: NextMove = {
       action: "red_day_exit",
       trick_id: "exit_working_to_dust",
-      reason: "RED_DAY fired — sleeve working to dust, hold banks, stage troughs. No place.",
+      reason:
+        "RED_DAY fired — sleeve working to dust, hold banks, then green-only until bottoms. No place.",
       live: true,
     };
     if (seat) move.symbol = seat.symbol;
     return move;
+  }
+
+  if (
+    input.redDay.active &&
+    (input.redDay.phase === "green_shelter" || input.redDay.phase === "defend")
+  ) {
+    const green =
+      pickCandidate(input.candidates, "park_green_only") ??
+      (input.redDay.recommendations.parkGreenOnly[0]
+        ? {
+            trick_id: "park_green_only",
+            eligible: true as const,
+            reason: input.redDay.recommendations.parkGreenOnly[0].reason,
+            symbol: input.redDay.recommendations.parkGreenOnly[0].symbol,
+          }
+        : undefined);
+    if (green) {
+      const move: NextMove = {
+        action: "green_only_park",
+        trick_id: "park_green_only",
+        reason:
+          "Everything red — shelter into green-only tokens until bottoms. Agents optional. No place.",
+        live: true,
+      };
+      if (green.symbol !== undefined) move.symbol = green.symbol;
+      if (green.path_id !== undefined) move.path_id = green.path_id;
+      return move;
+    }
+  }
+
+  if (input.redDay.active && input.redDay.phase === "reenter") {
+    const trough = pickCandidate(input.candidates, "trough_bounce_15m");
+    if (trough) {
+      const move: NextMove = {
+        action: "enter",
+        trick_id: trough.trick_id,
+        reason:
+          "Bottoms found after RED_DAY — agentless trough re-entry (math, not chatter). No place.",
+        live: true,
+      };
+      if (trough.symbol !== undefined) move.symbol = trough.symbol;
+      if (trough.path_id !== undefined) move.path_id = trough.path_id;
+      return move;
+    }
   }
 
   for (const trickId of SURF_ACT.trickOutPreference) {

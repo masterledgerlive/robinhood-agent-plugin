@@ -37,6 +37,8 @@ export type {
   NextMove,
   WhisperCard,
   RedDayResult,
+  RedDayPhase,
+  RedDayGreenPark,
   TokenTrigger,
   TokenTriggerPlan,
   TriggerAction,
@@ -69,7 +71,15 @@ export { SuccessLedger, LedgerError } from "./ledger.js";
 export { watch15m } from "./watcher.js";
 export { runSurfLearn, whatIfPnlUsd, surfUniverseQuotes } from "./surf-learn.js";
 export { recommendNextMove } from "./surf-act.js";
-export { redDayTrigger, evaluateRedDay } from "./red-day.js";
+export { redDayTrigger, evaluateRedDay, redDayAllowsTroughReentry } from "./red-day.js";
+export {
+  climbFromSessionOpen,
+  everythingGoingRed,
+  isGreenVsOpen,
+  rankGreenOnly,
+  topGreenOnly,
+} from "./green-only.js";
+export type { GreenOnlyCandidate } from "./green-only.js";
 export { assertWhisper, loadWhispers, loadWhisperFile, whisperCardSchema, WhisperError } from "./whisper.js";
 export {
   AGENTIC_MOVE_EQ,

@@ -4,6 +4,7 @@ import { expectancyHalt } from "./expectancy-halt.js";
 import { holdBank } from "./hold-bank.js";
 import { meanRevert15m } from "./mean-revert-15m.js";
 import { momentum15m } from "./momentum-15m.js";
+import { parkGreenOnly } from "./park-green-only.js";
 import { parkToChip } from "./park-to-chip.js";
 import { parkToNear } from "./park-to-near.js";
 import { secondWaveReentry } from "./second-wave-reentry.js";
@@ -22,6 +23,7 @@ export const TRICK_CATALOG: readonly Trick[] = [
   deconcentrateHighNotional,
   parkToNear,
   parkToChip,
+  parkGreenOnly,
   trickOutAtPeak,
   secondWaveReentry,
   expectancyHalt,
@@ -57,6 +59,7 @@ export {
   holdBank,
   meanRevert15m,
   momentum15m,
+  parkGreenOnly,
   parkToChip,
   parkToNear,
   secondWaveReentry,
