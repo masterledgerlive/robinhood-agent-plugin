@@ -26,6 +26,10 @@ export class LedgerError extends Error {
  * Follow-path + success ledger.
  * Rolling win rate / expectancy come only from recorded attempts.
  * Realized PnL requires broker order ids — never invent.
+ *
+ * Practical Trust Card today (IKN CORE, usable now — not Merkle/Solid):
+ * path_id + trick_id + real order_id + ledger outcome.
+ * Produce/protect tokens under gates; do not churn the book.
  */
 export class SuccessLedger {
   readonly example: boolean;

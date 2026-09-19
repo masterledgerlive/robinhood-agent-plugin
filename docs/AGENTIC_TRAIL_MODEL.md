@@ -6,6 +6,8 @@ Use **Agentic AI as the product we trail**, not as endless chat spend. Learn and
 
 **v1 in this repo:** code watches; humans and agents step in on alerts. Continuous 15m checks are deterministic and cheap. Cursor / Grok / desk bots do not poll quiet books.
 
+The live book’s job is to **produce or protect tokens under gates — not lose to churn.** IKN CORE ethics apply now as that discipline ([IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md)). The **IKN Network Project** is the cross-system bridge; this plugin stays the RH catalog. Solid pods, Merkle Trust Cards, and medical/cosmos phases are **WIP only** — do not implement them here.
+
 ## Non-negotiables
 
 - Account: Robinhood **Agentic only**. Example rhs `813839826` (account id, not a secret). Never send orders to a non-agentic account.
@@ -20,6 +22,9 @@ Use **Agentic AI as the product we trail**, not as endless chat spend. Learn and
   - expectancy halt: after 5 losing working RTs
 - Predictions: Game mobile ~$2 Yes/No only if ≤0.45 or ≥0.85 (MCP cannot place events yet)
 - Real fills / real hashes only — never invent PnL
+- **Gas-gated truth ≡ LOW_CAP_SLOW edge gates.** No edge / wide spread / halt → quiet. Motion ≠ mandate.
+- Unverified agentic chatter (news, social, unnamed bots) is **Wild West quarantine**: paraphrase into follow-path *candidates* only; never auto-trade.
+- Practical Trust Card today: `path_id` + `trick_id` + real `order_id` + ledger outcome. No Merkle/pod layer required to log a fill.
 - No live trading keys in this repo. Watcher and tests use fixtures / stubs. **No order placement from CI or the 15m CLI.**
 
 ## Architecture: code watches; agents step in on alerts
@@ -88,7 +93,7 @@ Log (when a human/agent actually attempts a move): `{trick_id, path_id, order_id
 1. Robinhood Agentic MCP + mobile (ground truth for *our* book)
 2. RH cascade desk/bots
 3. Public agentic trading repos / papers (MIT plugin neighbors)
-4. News / social agentic traction — **paraphrase into follow-path candidates**; never auto-trade off chatter alone
+4. News / social agentic traction — **Wild West quarantine**: paraphrase into follow-path candidates; never auto-trade off chatter alone
 5. Machine view / plain-text plugin dumps (`=== TRAIL VIEW ===` + `=== MACHINE LOG ===`)
 
 Ranking: prefer systems with **published or observed positive expectancy under friction**, small-capital compatible, and compatible with our hard rails.
@@ -106,6 +111,7 @@ Small-capital research that locked LOW_CAP_SLOW: frequency is the killer on ~$20
 | JSON schemas | `src/trail/schemas.ts`, `docs/schemas/` |
 | Trail plain-text view | `src/log/trail-view.ts` (extends MACHINE VIEW) |
 | EXAMPLE fixtures | `tests/fixtures/trail/*.example.json` |
+| IKN CORE ethics (usable now; protocol WIP) | [IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md) |
 
 ```bash
 npm run watch:15m -- --snapshot tests/fixtures/trail/quiet.example.json
@@ -130,3 +136,4 @@ Sample JSON in this repo is marked `"example": true` and a `$comment`. It is **n
 - Invented “sample” PnL or fake leader stats
 - MCP place/preview from the watcher, tests, or CI
 - FIL MCP buys until the pair is agentic-tradable
+- Solid pods, Merkle Trust Cards, medical/cosmos IKN phases (park in IKN Network Project)

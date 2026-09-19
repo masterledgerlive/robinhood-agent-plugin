@@ -116,6 +116,8 @@ Quiet is the default. Alert lists trick candidates that cleared **LOW_CAP_SLOW**
 
 Banks stay **NEAR → FIL (display-only until MCP unlock) → CHIP**. Example Agentic rhs `813839826` (not a secret).
 
+Favor **produce/protect tokens under gates**, not lose-to-churn. [IKN CORE ethics](docs/IKN_CORE_ETHICS_BRIDGE.md) apply now as that bridge: gas-gated truth ≡ LOW_CAP_SLOW edge gates; unverified agentic chatter is Wild West quarantine; the practical Trust Card today is `path_id` + `trick_id` + real `order_id` + ledger outcome. The **IKN Network Project** holds cross-system / WIP layers (Solid pods, Merkle cards, medical/cosmos) — do not implement those here.
+
 Full spec: [docs/AGENTIC_TRAIL_MODEL.md](docs/AGENTIC_TRAIL_MODEL.md).
 
 ## NEAR prediction + crypto playbook
