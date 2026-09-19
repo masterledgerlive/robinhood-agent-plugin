@@ -13,6 +13,7 @@ import {
 } from "./cascade.js";
 import {
   AGENTIC_MOVE_EQ,
+  cascadeJumpOutMark,
   edgeClearsPark,
   formatSleeveExitEquation,
   whisperCascadeScore,
@@ -25,6 +26,7 @@ import {
   findSleeve,
   isFilDisplayOnly,
   maxTakeWithoutFlatten,
+  rtSpread,
   workingSeats,
 } from "./gates.js";
 import type {
@@ -58,9 +60,19 @@ function brokerSpecs(
   stop?: number,
   peakPullback?: number,
   support?: number,
+  cascadeJump?: number,
 ): TriggerBrokerAlertSpec[] {
   const specs: TriggerBrokerAlertSpec[] = [];
   const bare = baseSymbol(symbol);
+  if (cascadeJump !== undefined && Number.isFinite(cascadeJump)) {
+    specs.push({
+      symbol: bare,
+      asset_class: "crypto",
+      condition_type: "price_above",
+      threshold: cascadeJump.toFixed(8).replace(/\.?0+$/, ""),
+      purpose: "cascade_jump_out",
+    });
+  }
   if (tp !== undefined && Number.isFinite(tp)) {
     specs.push({
       symbol: bare,
@@ -201,14 +213,15 @@ function armWorking(
     if (cascadeExit.fire) {
       fired = true;
       armed = true;
-      // Micro / stale / RSI cascade counts as park-eligible when still green.
+      // %-hit / soft cascade counts as park-eligible when still green.
       if (cascadeExit.edge !== null && cascadeExit.edge > 0 && take > 0) {
         parkEligible = true;
       }
     } else if (
       cascadeExit.peakTopShown ||
       cascadeExit.staleWave ||
-      cascadeExit.rsiRollingDown
+      cascadeExit.rsiRollingDown ||
+      cascadeExit.jumpOutHit
     ) {
       armed = true;
     }
@@ -234,6 +247,11 @@ function armWorking(
     where = "ride_peak";
   }
 
+  let cascadeJump: number | undefined;
+  if (quote && basis !== undefined && basis > 0) {
+    cascadeJump = cascadeJumpOutMark(basis, rtSpread(quote), eq);
+  }
+
   const trigger: TokenTrigger = {
     symbol: sleeve.symbol,
     role: "working",
@@ -242,6 +260,7 @@ function armWorking(
     when: {
       ...(tpMark !== undefined ? { takeProfitMark: tpMark } : {}),
       ...(stopMarkValue !== undefined ? { stopMark: stopMarkValue } : {}),
+      ...(cascadeJump !== undefined ? { cascadeJumpOutMark: cascadeJump } : {}),
       ...(cascadeExit?.supportMark !== undefined && cascadeExit.supportMark !== null
         ? { supportMark: cascadeExit.supportMark }
         : {}),
@@ -261,6 +280,7 @@ function armWorking(
       stopMarkValue,
       peakAlert ?? undefined,
       cascadeExit?.supportMark ?? undefined,
+      cascadeJump,
     ),
     agentRequired: false,
     ...(wave ? { wave } : {}),

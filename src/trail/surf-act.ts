@@ -1,22 +1,81 @@
 import { SURF_ACT } from "./constants.js";
-import type { BrainMemory, NextMove, RedDayResult, SurfLearnResult, WatchCandidate } from "./types.js";
+import type {
+  BrainMemory,
+  CascadeMoveBatch,
+  NextMove,
+  RedDayResult,
+  SurfLearnResult,
+  TokenTriggerPlan,
+  WatchCandidate,
+} from "./types.js";
+import { firedCascadeTriggers } from "./alert-bridge.js";
+import { baseSymbol } from "./gates.js";
 
 function pickCandidate(candidates: WatchCandidate[], trickId: string): WatchCandidate | undefined {
   return candidates.find((c) => c.trick_id === trickId);
 }
 
 /**
- * One recommended move this 15m slot.
- * Red-day exit → green-only shelter → peak trick-out → second-wave → accumulate → enter.
+ * Cascade rotate batch for this 15m slot — pure math, up to cascadeRotatesPerSlot.
+ * Only %-hit / trick-out fires (not enter fillers — those stay in SURF_ACT enter path).
+ * Robinhood acts via synced create_alert specs; this never places.
+ */
+export function recommendCascadeMoves(input: {
+  triggers: TokenTriggerPlan;
+  candidates: WatchCandidate[];
+}): CascadeMoveBatch {
+  const capacity = SURF_ACT.cascadeRotatesPerSlot;
+  const fired = firedCascadeTriggers(input.triggers.tokens);
+  const moves: NextMove[] = [];
+
+  for (const token of fired) {
+    if (moves.length >= capacity) break;
+    moves.push({
+      action: "trick_out",
+      trick_id: "trick_out_at_peak",
+      symbol: token.symbol,
+      reason: `Cascade %-hit fire on ${baseSymbol(token.symbol)} — jump out; sync RH alert. Agents optional.`,
+      live: true,
+    });
+  }
+
+  // Fill remaining capacity with other eligible trick-out candidates (math seats).
+  if (moves.length < capacity) {
+    for (const trickId of SURF_ACT.trickOutPreference) {
+      if (moves.length >= capacity) break;
+      const hits = input.candidates.filter((c) => c.trick_id === trickId);
+      for (const hit of hits) {
+        if (moves.length >= capacity) break;
+        if (hit.symbol && moves.some((m) => m.symbol === hit.symbol)) continue;
+        const move: NextMove = {
+          action: "trick_out",
+          trick_id: hit.trick_id,
+          reason: `Cascade rotate seat ${moves.length + 1}/${capacity} — math %-hit/peak. Sync RH alert.`,
+          live: true,
+        };
+        if (hit.symbol !== undefined) move.symbol = hit.symbol;
+        if (hit.path_id !== undefined) move.path_id = hit.path_id;
+        moves.push(move);
+      }
+    }
+  }
+
+  return { moves, capacity, firedCount: fired.length };
+}
+
+/**
+ * One recommended move this 15m slot (primary).
+ * Red-day exit → green-only shelter → peak/%-hit cascade → second-wave → accumulate → enter.
  * Live=false means hold / learn — do not flip a quiet book to chase.
  * Brain notes (transmission cost) refine hold/accumulate reasons when injected.
- * Never places. Agents optional.
+ * Never places. Agents optional — use recommendCascadeMoves for the ≥10 batch.
  */
 export function recommendNextMove(input: {
   candidates: WatchCandidate[];
   learn: SurfLearnResult;
   redDay: RedDayResult;
   brain?: BrainMemory;
+  cascadeMoves?: CascadeMoveBatch;
 }): NextMove {
   if (input.redDay.status === "fired" && input.redDay.phase === "defend") {
     const seat = input.redDay.recommendations.exitWorkingToDust[0];
@@ -24,7 +83,7 @@ export function recommendNextMove(input: {
       action: "red_day_exit",
       trick_id: "exit_working_to_dust",
       reason:
-        "RED_DAY fired — sleeve working to dust, hold banks, then green-only until bottoms. No place.",
+        "RED_DAY fired — sleeve working to dust, hold banks, then green-only until bottoms. Sync alerts; no place from watcher.",
       live: true,
     };
     if (seat) move.symbol = seat.symbol;
@@ -50,7 +109,7 @@ export function recommendNextMove(input: {
         action: "green_only_park",
         trick_id: "park_green_only",
         reason:
-          "Everything red — shelter into green-only tokens until bottoms. Agents optional. No place.",
+          "Everything red — shelter into green-only tokens until bottoms. Agents optional. Sync alerts.",
         live: true,
       };
       if (green.symbol !== undefined) move.symbol = green.symbol;
@@ -66,7 +125,7 @@ export function recommendNextMove(input: {
         action: "enter",
         trick_id: trough.trick_id,
         reason:
-          "Bottoms found after RED_DAY — agentless trough re-entry (math, not chatter). No place.",
+          "Bottoms found after RED_DAY — agentless trough re-entry (math, not chatter). Sync alerts.",
         live: true,
       };
       if (trough.symbol !== undefined) move.symbol = trough.symbol;
@@ -75,13 +134,23 @@ export function recommendNextMove(input: {
     }
   }
 
+  // Prefer first cascade batch move when %-hit / trick-out fires (before parks/enters).
+  const batchLead = input.cascadeMoves?.moves[0];
+  if (batchLead && batchLead.live && batchLead.action === "trick_out") {
+    const n = input.cascadeMoves?.moves.length ?? 1;
+    return {
+      ...batchLead,
+      reason: `${batchLead.reason} (${n}/${input.cascadeMoves?.capacity ?? SURF_ACT.cascadeRotatesPerSlot} cascade slot).`,
+    };
+  }
+
   for (const trickId of SURF_ACT.trickOutPreference) {
     const out = pickCandidate(input.candidates, trickId);
     if (out) {
       const move: NextMove = {
         action: "trick_out",
         trick_id: out.trick_id,
-        reason: "Peak/first-crash trick-out — leave dust, rotate to primed token. No place.",
+        reason: "Peak/%-hit cascade trick-out — leave dust, rotate to primed token. Sync RH alert.",
         live: true,
       };
       if (out.symbol !== undefined) move.symbol = out.symbol;
@@ -96,7 +165,7 @@ export function recommendNextMove(input: {
       const move: NextMove = {
         action: "second_wave",
         trick_id: wave2.trick_id,
-        reason: "Second-wave reclaim after crash — ride toward higherPeak. No place.",
+        reason: "Second-wave reclaim after crash — ride toward higherPeak. Sync alerts.",
         live: true,
       };
       if (wave2.symbol !== undefined) move.symbol = wave2.symbol;
@@ -129,7 +198,7 @@ export function recommendNextMove(input: {
     const move: NextMove = {
       action: "enter",
       trick_id: enter.trick_id,
-      reason: `One ${trickId} seat this 15m slot — gates cleared (math, not chatter).${tight} No place.`,
+      reason: `Cascade seat (${SURF_ACT.preferNewEntriesPerSlot}/slot cap) — ${trickId} gates cleared (math, not chatter).${tight}`,
       live: true,
     };
     if (enter.symbol !== undefined) move.symbol = enter.symbol;

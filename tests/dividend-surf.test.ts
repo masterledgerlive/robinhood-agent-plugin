@@ -23,8 +23,8 @@ describe("DIVIDEND_15M + SURF_LEARN", () => {
     assert.equal(quiet.mode, "DIVIDEND_15M");
     const profile = gateProfile(quiet);
     assert.equal(profile.id, "DIVIDEND_15M");
-    assert.equal(profile.maxNewWorkingEntriesPerDay, 8);
-    assert.equal(profile.maxWorkingSeats, 4);
+    assert.equal(profile.maxNewWorkingEntriesPerDay, 240);
+    assert.equal(profile.maxWorkingSeats, 8);
     assert.equal(profile.maxSpread, 0.012);
     assert.equal(profile.minEdgeMultipleOfRtSpread, 1.5);
     assert.equal(profile.softHaltRealizedUsd, -2);
