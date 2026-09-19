@@ -9,6 +9,7 @@
 - IKN CORE ethics bridge (usable now). Full IKN protocol / Solid / Merkle / cosmos phases stay WIP.
 - DIVIDEND_15M default live rails + SURF_LEARN paper what-ifs every 15m (`WHAT-IF TOP`). No watcher place.
 - Red-day + Agentic whisper layer (2-of-3). Wild West quarantine. Fired recommends exit-to-dust + buy_trough only.
+- SURF_ACT next-move: park profits into banks first, one 15m seat when gates clear (trough → mean-revert → momentum). Momentum live unlock after SURF_LEARN paper ≥50% / ≥3 trials (graduate prefer 55%/10). Watcher still never places.
 
 ## 1.0.0
 

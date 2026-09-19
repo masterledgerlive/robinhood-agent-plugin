@@ -63,9 +63,23 @@ export const SURF_LEARN = {
   notionalUsd: 2,
   topN: 3,
   liveMicroMinBuyingPowerUsd: 2,
-  momentumLiveMinWinRate: 0.55,
-  momentumLiveMinTrials: 10,
+  /** Learn-fast unlock — move sooner as paper ranks settle. Graduate prefer is 10 / 55%. */
+  momentumLiveMinWinRate: 0.5,
+  momentumLiveMinTrials: 3,
+  momentumGraduateMinWinRate: 0.55,
+  momentumGraduateMinTrials: 10,
   tricks: ["trough_bounce_15m", "momentum_15m", "mean_revert_15m", "hold_bank"] as const,
+} as const;
+
+/**
+ * Act on math: one working rotate per 15m slot when gates clear,
+ * park dividends into banks so the book accumulates while we learn.
+ */
+export const SURF_ACT = {
+  id: "SURF_ACT",
+  preferNewEntriesPerSlot: 1,
+  accumulateOrder: ["park_to_near", "park_to_chip"] as const,
+  enterPreference: ["trough_bounce_15m", "mean_revert_15m", "momentum_15m"] as const,
 } as const;
 
 export const DEFAULT_GATE_MODE = "DIVIDEND_15M" as const;

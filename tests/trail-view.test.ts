@@ -43,6 +43,8 @@ describe("trail machine view", () => {
     const ledger = SuccessLedger.loadFile(join(here, "fixtures/trail/ledger.example.json"));
     const view = formatTrailView({ snapshot, ledger, watch: watch15m(snapshot, ledger) });
     assert.match(view, /^WATCH   quiet/m);
+    assert.match(view, /SURF_ACT/);
+    assert.match(view, /^NEXT MOVE/m);
     assert.match(view, /CANDIDATES\n  none/);
     assert.match(view, /^WHAT-IF TOP/m);
     assert.match(view, /^RED_DAY/m);

@@ -49,6 +49,8 @@ describe("RED_DAY + whispers", () => {
     assert.equal(watch.status, "alert");
     assert.equal(watch.redDay.status, "fired");
     assert.equal(watch.halt.redDay, true);
+    assert.equal(watch.nextMove.action, "red_day_exit");
+    assert.equal(watch.nextMove.live, true);
     assert.equal(
       watch.candidates.some((c) => c.trick_id === "trough_bounce_15m" || c.trick_id === "momentum_15m"),
       false,

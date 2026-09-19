@@ -27,6 +27,8 @@ describe("15m watcher", () => {
     assert.ok(watch.learn.whatIfTop.length >= 1);
     assert.equal(watch.learn.notionalUsd, 2);
     assert.equal(watch.redDay.status, "quiet");
+    assert.equal(watch.nextMove.action, "hold");
+    assert.equal(watch.nextMove.live, false);
   });
 
   it("alerts when trough_bounce_15m clears and attaches a follow-path id", () => {
@@ -66,6 +68,7 @@ describe("15m watcher", () => {
       assert.equal(quietCode, 0);
       assert.match(quietOut, /WATCH   quiet/);
       assert.match(quietOut, /quiet \| 0 live candidates/);
+      assert.match(quietOut, /NEXT MOVE/);
       assert.match(quietOut, /WHAT-IF TOP/);
       assert.doesNotMatch(quietOut, /place_crypto_order/);
 

@@ -6,7 +6,7 @@ Use **Agentic AI as the product we trail**, not as endless chat spend. Learn and
 
 **v1 in this repo:** code watches; humans and agents step in on alerts. Continuous 15m checks are deterministic and cheap. Cursor / Grok / desk bots do not poll quiet books.
 
-**Default rails:** `DIVIDEND_15M` + `SURF_LEARN` ([DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md)). LOW_CAP_SLOW remains available. Learn runs **every** cycle. Live micros require **buying power ≥ $2**.
+**Default rails:** `DIVIDEND_15M` + `SURF_LEARN` + `SURF_ACT` ([DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md)). LOW_CAP_SLOW remains available. Learn runs **every** cycle. Live micros require **buying power ≥ $2**. One math-only next move per slot: park profits into banks first, then at most one working seat.
 
 The live book’s job is to **produce or protect tokens under gates — not lose to churn.** IKN CORE ethics apply now as that discipline ([IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md)). The **IKN Network Project** is the cross-system bridge; this plugin stays the RH catalog. Solid pods, Merkle Trust Cards, and medical/cosmos phases are **WIP only** — do not implement them here.
 
@@ -14,9 +14,10 @@ The live book’s job is to **produce or protect tokens under gates — not lose
 
 - Account: Robinhood **Agentic only**. Example rhs `813839826` (account id, not a secret). Never send orders to a non-agentic account.
 - Banks forever: **NEAR → FIL (display-only until MCP unlock) → CHIP**. Dust floors. Never flatten.
-- Mode: **DIVIDEND_15M** (default) — max 8 new working entries/day, 4 working seats, spread ≤1.2%, edge ≥1.5× RT, soft halt −$2, expectancy halt after 8 losing working RTs. Trough+bounce preferred; light momentum only after SURF_LEARN paper ≥55% over ≥10 trials.
+- Mode: **DIVIDEND_15M** (default) — max 8 new working entries/day, 4 working seats, spread ≤1.2%, edge ≥1.5× RT, soft halt −$2, expectancy halt after 8 losing working RTs. Trough+bounce preferred; light momentum after SURF_LEARN paper ≥50% over ≥3 trials (graduate prefer ≥55% / ≥10).
 - Legacy: **LOW_CAP_SLOW** — max 1 entry/day, 2 seats, spread ≤0.8%, edge ≥2× RT, trough+bounce only, soft halt −$1, expectancy halt after 5 RTs.
 - **SURF_LEARN** every 15m: paper $2 what-ifs (trough / momentum / mean-revert / hold_bank), ranked in `WHAT-IF TOP`. Not a live fill.
+- **SURF_ACT** every 15m: one `NEXT MOVE` — accumulate (park) beats a new seat; trough beats mean-revert beats momentum. `live=false` means hold/learn. Never a place.
 - Predictions: Game mobile ~$2 Yes/No only if ≤0.45 or ≥0.85 (MCP cannot place events yet)
 - Real fills / real hashes only — never invent PnL
 - **Gas-gated truth ≡ active edge gates** (LOW_CAP_SLOW 2× RT, DIVIDEND_15M 1.5× RT prefer 2×). No edge / wide spread / halt → live quiet. Motion ≠ mandate.
@@ -67,7 +68,7 @@ Name every rotate by the **algorithm**, not the vibe. Each trick is `evaluate(sn
 | id | When it may fire |
 | --- | --- |
 | `trough_bounce_15m` | Mark reclaim above a 15–30m trough + active spread/edge + seats/day open. No chase. |
-| `momentum_15m` | Last-15m up-move. Live only on DIVIDEND_15M after paper win rate ≥55% / ≥10 trials. |
+| `momentum_15m` | Last-15m up-move. Live only on DIVIDEND_15M after paper win rate ≥50% / ≥3 trials (graduate prefer 55%/10). |
 | `mean_revert_15m` | Dip below a known mean. SURF_LEARN always; live only on DIVIDEND_15M if gates clear. |
 | `hold_bank` | SURF_LEARN $2 NEAR/CHIP baseline. Never a live working entry. |
 | `bank_sleeve_authorized` | Game-only bank haircut above dust floor. Never flatten. FIL stays display-only. |
@@ -111,7 +112,7 @@ Small-capital research that locked LOW_CAP_SLOW: frequency is the killer on ~$20
 | JSON schemas | `src/trail/schemas.ts`, `docs/schemas/` |
 | Trail plain-text view | `src/log/trail-view.ts` (extends MACHINE VIEW) |
 | EXAMPLE fixtures | `tests/fixtures/trail/*.example.json` |
-| DIVIDEND_15M + SURF_LEARN | [DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md), `src/trail/surf-learn.ts` |
+| DIVIDEND_15M + SURF_LEARN + SURF_ACT | [DIVIDEND_15M_SURF.md](DIVIDEND_15M_SURF.md), `src/trail/surf-learn.ts`, `src/trail/surf-act.ts` |
 | Red-day + whispers | [RED_DAY_WHISPER.md](RED_DAY_WHISPER.md), `src/trail/red-day.ts` |
 | IKN CORE ethics (usable now; protocol WIP) | [IKN_CORE_ETHICS_BRIDGE.md](IKN_CORE_ETHICS_BRIDGE.md) |
 

@@ -31,12 +31,14 @@ export {
   LOW_CAP_SLOW,
   DIVIDEND_15M,
   SURF_LEARN,
+  SURF_ACT,
   RED_DAY,
   TRAIL_HORIZON_DEFAULT,
   TRICK_IDS,
   SuccessLedger,
   LedgerError,
   watch15m,
+  recommendNextMove,
   redDayTrigger,
   FixtureBroker,
   assertSnapshot,
@@ -57,6 +59,7 @@ export type {
   WhatIfPath,
   WhisperCard,
   RedDayResult,
+  NextMove,
 } from "./trail/index.js";
 export {
   TRICK_CATALOG,

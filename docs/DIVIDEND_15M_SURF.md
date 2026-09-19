@@ -1,12 +1,12 @@
-# DIVIDEND_15M / SURF_LEARN (Game 2026-09-18 ~7:51 PT)
+# DIVIDEND_15M / SURF_LEARN / SURF_ACT (Game 2026-09-18 ~7:51 PT)
 
 ## Intent
 
 Target **revenue every 15 minutes** by surfing waves across tokens: leave banks growing, rotate working capital, learn from **what-if paths** (same notional — which path would have won), and move faster than LOW_CAP_SLOW. Game authorized **more risk for more reward** while learning with many parallel “surfers.”
 
-Default live rails are **DIVIDEND_15M**. **SURF_LEARN** runs every 15m cycle in code. LOW_CAP_SLOW remains a selectable profile.
+Default live rails are **DIVIDEND_15M**. **SURF_LEARN** ranks paper what-ifs every cycle. **SURF_ACT** picks one math-only `NEXT MOVE` (accumulate first, then one seat). LOW_CAP_SLOW remains a selectable profile.
 
-Literal every-slot profit is not guaranteed; the system **aims** every 15m and **learns** every 15m. Losing paper paths teach which waves not to take live.
+Literal every-slot profit is not guaranteed; the system **aims** every 15m and **learns** every 15m. Losing paper paths teach which waves not to take live. It is OK to rotate faster as the paper ledger settles — choices stay gate math, not chatter.
 
 ## Still forever
 
@@ -40,7 +40,7 @@ Paper what-if is **not** a broker fill. Ledger `kind: paper_surf` is separate fr
 | Max working seats | **4** (banks excluded) |
 | Spread hard | **≤1.2%** (prefer ≤0.8%) |
 | Edge | Expected 15m move ≥ **1.5×** RT spread (prefer 2×) |
-| Entry | Prefer top ranked SURF_LEARN path; trough+bounce preferred; light momentum OK if ledger paper win rate ≥55% over ≥10 trials |
+| Entry | SURF_ACT: park-to-banks first; else one seat (trough → mean-revert → momentum). Momentum live after paper ≥**50% / ≥3** trials; graduate prefer ≥55% / ≥10 |
 | Exit / dividend | Sleeve TP at max(1.2%, 1.5×spread) or rotate into next top what-if within same 15m if unrealized ≥ edge; stop max(2%, 2×spread) |
 | Soft halt | Day realized ≤ **−$2.00** |
 | Expectancy halt | **8** losing working RTs |
@@ -48,6 +48,17 @@ Paper what-if is **not** a broker fill. Ledger `kind: paper_surf` is separate fr
 | Dust / banks | Untouchable floors |
 
 If BP < $2: **learn only** — no forced last-dollar trades. Free BP via Game-authorized working sleeve (leave dust) or deposit.
+
+### C) SURF_ACT (one recommended move per 15m — never a place)
+
+Priority is fixed math:
+
+1. **RED_DAY fired** → `red_day_exit` (working to dust; banks hold)
+2. **Accumulate** → `park_to_near` then `park_to_chip` when working profit clears the park gate (leave dust)
+3. **Enter one seat** → `trough_bounce_15m` (proven pullback) then `mean_revert_15m` then unlocked `momentum_15m`
+4. Else **hold / hold_bank** (`live=false`) — banks stay; SURF_LEARN keeps ranking
+
+TRAIL VIEW prints `NEXT MOVE`. The watcher still does not preview or place. Agents/humans step in on `WATCH   alert` and follow review-before-place.
 
 ## Dividend definition
 
@@ -59,4 +70,4 @@ A “15m dividend” = closed working sleeve (or prediction ticket) with **posit
 npm run watch:15m -- --snapshot tests/fixtures/trail/quiet.example.json
 ```
 
-Quiet live + `WHAT-IF TOP` is the intended default on that EXAMPLE fixture. The watcher never places.
+Quiet live + `NEXT MOVE` hold/accumulate + `WHAT-IF TOP` is the intended default on that EXAMPLE fixture. The watcher never places.
